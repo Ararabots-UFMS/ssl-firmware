@@ -9,7 +9,7 @@
 #define INC_MAINCPP_H_
 
 
-int maincpp(TIM_HandleTypeDef htim2, ADC_HandleTypeDef hadc1);
+int maincpp(TIM_HandleTypeDef htim4);
 
 
 #endif /* INC_MAINCPP_H_ */
