@@ -41,6 +41,7 @@ int maincpp(TIM_HandleTypeDef htim4)
   HAL_Delay(10000);
   __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 650);
 
+
   //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 
   //__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, 2000);
