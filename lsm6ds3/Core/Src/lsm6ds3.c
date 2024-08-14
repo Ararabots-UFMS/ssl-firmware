@@ -97,6 +97,8 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings, SPI_HandleTypeDef hspi2
     /* Check device ID */
     lsm6ds3_device_id_get(&dev_ctx, &whoamI);
 
+    return whoamI;
+
     if (whoamI != LSM6DS3_ID) {
         return LSM6DS3_ERROR_WHO_AM_I;
     }

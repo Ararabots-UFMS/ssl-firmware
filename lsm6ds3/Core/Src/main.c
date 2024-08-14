@@ -107,10 +107,10 @@ int main(void)
       .lsm6ds3_odr_g = LSM6DS3_GY_ODR_1k66Hz
   };
 
-  lsm6ds3_init(lsm6ds_settings, hspi2);
+  uint8_t whoami = lsm6ds3_init(lsm6ds_settings, hspi2);
 
-  float* xl_data;
-  float* g_data;
+  /*float* xl_data;
+  float* g_data;*/
 
 
   /* USER CODE END 2 */
@@ -122,7 +122,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  lsm6ds3_update_data_interrupt();
+
+	  HAL_UART_Transmit(&huart1, whoami, strlen(whoami), 10);
+
+	  /*lsm6ds3_update_data_interrupt();
 	  xl_data = lsm6ds3_get_acc_data_mg();
 	  g_data = lsm6ds3_get_gyro_data_mdps();
 
@@ -130,7 +133,7 @@ int main(void)
 	  sprintf(tmp, "g: %.3f, %.3f, %.3f\r\n", g_data[0], g_data[1], g_data[2]);
 	  HAL_UART_Transmit(&huart1, tmp, strlen(tmp), 10);
 	  sprintf(tmp, "xl: %.3f, %.3f, %.3f\r\n", xl_data[0], xl_data[1], xl_data[2]);
-	  HAL_UART_Transmit(&huart1, tmp, strlen(tmp), 10);
+	  HAL_UART_Transmit(&huart1, tmp, strlen(tmp), 10);*/
 	  HAL_Delay(500);
   }
   /* USER CODE END 3 */
