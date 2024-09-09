@@ -96,5 +96,5 @@ if __name__ == "__main__":
     init_x = -4500 #float(input("Inital position X (mm)"))
     init_y = -3000 #float(input("Inital position Y (mm)"))
     goal_x = 0 #float(input("Goal position X  (mm)"))
-    goal_y = 0 #float(input("Goal position Y  (mm)"))
+    goal_y = 500 #float(input("Goal position Y  (mm)"))
     main((init_x / 1000, init_y / 1000), (goal_x / 1000, goal_y / 1000))

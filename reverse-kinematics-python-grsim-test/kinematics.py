@@ -1,4 +1,4 @@
-import math
+from math import pi, sin, cos
 import numpy as np
 
 ######## Velocidade no eixo x, y e angular
@@ -19,14 +19,14 @@ def reverse_kinematics(velocities):
     ######## 1 -> 150 graus front left
     ######## 2 -> 225 graus back left
     ######## 3 -> 315 graus back right
-    wheel_alngles = [math.pi/6, (math.pi*5)/6, (math.pi*5)/4, (math.pi*7)/4]
+    wheel_alngles = [pi/6, (pi*5)/6, (pi*5)/4, (pi*7)/4]
 
     ######## Matriz Jacobiana
-    jacobian = np.matrix([[math.sin(wheel_alngles[0]), math.cos(wheel_alngles[0]), R],
-                        [math.sin(wheel_alngles[1]), math.cos(wheel_alngles[1]), R],
-                        [math.sin(wheel_alngles[2]), math.cos(wheel_alngles[2]), R],
-                        [math.sin(wheel_alngles[3]), math.cos(wheel_alngles[3]), R],])
+    jacobian = np.matrix([[cos(wheel_alngles[0]), sin(wheel_alngles[0]), R],
+                        [cos(wheel_alngles[1]), sin(wheel_alngles[1]), R],
+                        [cos(wheel_alngles[2]), sin(wheel_alngles[2]), R],
+                        [cos(wheel_alngles[3]), sin(wheel_alngles[3]), R],])
 
-    wheels_acc = (1/r*jacobian*velocities).T.tolist()[0]
+    wheels_acc = ((1/r)*jacobian*velocities).T.tolist()[0]
     
     return [wheels_acc[1], wheels_acc[2], wheels_acc[3], wheels_acc[0]]
