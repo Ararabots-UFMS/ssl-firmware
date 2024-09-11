@@ -57,14 +57,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BUILTIN_LED_Pin GPIO_PIN_13
+#define BUILTIN_LED_GPIO_Port GPIOC
 #define SERIAL_TX_Pin GPIO_PIN_9
 #define SERIAL_TX_GPIO_Port GPIOA
 #define SERIAL_RX_Pin GPIO_PIN_10
 #define SERIAL_RX_GPIO_Port GPIOA
-#define GYRO_SCL_Pin GPIO_PIN_6
-#define GYRO_SCL_GPIO_Port GPIOB
-#define GYRO_SDA_Pin GPIO_PIN_7
-#define GYRO_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

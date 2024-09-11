@@ -3,4 +3,4 @@
 - [ ] Control
 - [ ] Gyroscope
 - [ ] Motor activation
-- [ ] Serial communication (Debugging)
+- [x] Serial communication (Debugging)
