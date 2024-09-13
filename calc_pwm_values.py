@@ -1,7 +1,7 @@
 # Código que calcula o valor de Counter Period para o PWM do microcontrolador STM32F103C8T6
 # dado um valor de frequência desejada e um valor de prescaler a ser utilizado.
 
-freq_desejada = int(input("Digite a frequência desejada: "))
+freq_desejada = float(input("Digite a frequência desejada: "))
 
 period_desejado = 1/freq_desejada
 
