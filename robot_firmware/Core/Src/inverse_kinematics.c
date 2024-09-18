@@ -34,7 +34,7 @@ void multiply_matrix_scalar(float **result, int rowsR, int colsR,
 	}
 }
 
-float* get_wheel_speed(float vx, float vy, float vtheta){
+float* get_wheel_speed(float vx, float vy, float vtheta, float curtheta){
 
 	float velocities[3][1] = {{vx}, {vy}, {vtheta}};
 
@@ -44,10 +44,10 @@ float* get_wheel_speed(float vx, float vy, float vtheta){
 
 	float wheel_angles[] = {PI*(5.0/6.0), PI*(5.0/4.0), PI*(7.0/4.0), PI*(1.0/6.0)};
 
-	float jacobian[4][3] = {{cos(wheel_angles[0]), sin(wheel_angles[0]), robot_radius},
-	                        {cos(wheel_angles[1]), sin(wheel_angles[1]), robot_radius},
-	                        {cos(wheel_angles[2]), sin(wheel_angles[2]), robot_radius},
-							{cos(wheel_angles[3]), sin(wheel_angles[3]), robot_radius}};
+	float jacobian[4][3] = {{cos(wheel_angles[0]+curtheta), sin(wheel_angles[0]+curtheta), robot_radius},
+	                        {cos(wheel_angles[1]+curtheta), sin(wheel_angles[1]+curtheta), robot_radius},
+	                        {cos(wheel_angles[2]+curtheta), sin(wheel_angles[2]+curtheta), robot_radius},
+							{cos(wheel_angles[3]+curtheta), sin(wheel_angles[3]+curtheta), robot_radius}};
 
 	///////////////////////////////////////////////////////////
 	float **p_velocities = (float **)malloc(3 * sizeof(float *));

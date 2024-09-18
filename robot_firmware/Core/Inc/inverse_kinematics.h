@@ -27,7 +27,7 @@ void multiply_matrices(	float **matA, int rowsA, int colsA,
 void multiply_matrix_scalar(float **result, int rowsR, int colsR,
 							float scalar);
 
-float* get_wheel_speed(float vx, float vy, float vtheta);
+float* get_wheel_speed(float vx, float vy, float vtheta, float curtheta);
 
 
 #endif /* INC_INVERSE_KINEMATICS_H_ */

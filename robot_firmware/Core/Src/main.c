@@ -19,22 +19,23 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "inverse_kinematics.h"
-
-
 //#define RADIO
+#define VERBOSE
+
+
+#include "inverse_kinematics.h"
+#include "motor_activation.h"
 
 #ifdef RADIO
-	#include "rf24.h"
+	#include "radio_interface.h"
 #endif
-
-#define VERBOSE
 
 #ifdef VERBOSE
 	#include <stdio.h>
@@ -62,12 +63,13 @@ typedef struct pidvalues {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SERIAL_UART huart3
 
+#define HSPI hspi1
 
-#define SERIAL_UART huart1
+#define HTIM htim1
 
-#define PAYLOAD_SIZE 32			//size in bytes for radio communication
-
+#define TIMER TIM1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -84,7 +86,6 @@ typedef struct pidvalues {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
 #ifdef VERBOSE
 	int __io_putchar(int ch);
 
@@ -92,7 +93,6 @@ void SystemClock_Config(void);
 #endif
 
 void get_command_from_buffer(uint8_t buffer[], command_t* result);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -132,52 +132,18 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART1_UART_Init();
   MX_SPI1_Init();
+  MX_USART3_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
+  motor_init(htim1, TIMER);
+
+
 	#ifdef RADIO
-		rf24_dev_t device; /* Module instance */
-		rf24_dev_t* p_dev = &device; /* Pointer to module instance */
-
-		/* Device config */
-
-		/* Get default configuration */
-		rf24_get_default_config(p_dev);
-
-		/* The SPI2 was chosen in Cube */
-		p_dev->platform_setup.hspi = &hspi1;
-
-		/* CSN on pin PC6 */
-		p_dev->platform_setup.csn_port = RADIO_CSN_GPIO_Port;
-		p_dev->platform_setup.csn_pin = RADIO_CSN_Pin;
-
-		/* IRQ on pin PC7 */
-		p_dev->platform_setup.irq_port = RADIO_IRQ_GPIO_Port;
-		p_dev->platform_setup.irq_pin = RADIO_IRQ_Pin;
-
-		/* CE on pin PC8 */
-		p_dev->platform_setup.ce_port = RADIO_CE_GPIO_Port;
-		p_dev->platform_setup.ce_pin = RADIO_CE_Pin;
-
-		p_dev->payload_size = PAYLOAD_SIZE;
-
-		rf24_init(p_dev);
-
-		uint8_t addresses[2][5] = {{0xE7, 0xE7, 0xE7, 0xE7, 0xE8}, {0xC2, 0xC2, 0xC2, 0xC2, 0xC1}};
-
-		//No idea what output_power should be
-		//rf24_set_output_power(p_dev, output_power);
-
-		rf24_status_t device_status; /* Variable to receive the statuses returned by the functions */
-
-		device_status = rf24_open_writing_pipe(p_dev, addresses[0]);
-		device_status = rf24_open_reading_pipe(p_dev, 1, addresses[1]);
-
-		device_status = rf24_start_listening(p_dev);
+		rf24_dev_t* p_dev; /* Pointer to module instance */
+		p_dev = radio_init(HSPI, PAYLOAD_SIZE);
 	#endif
-
-  //uint8_t loop=0;
 
   ////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////   RADIO SIMULATION  ///////////////////////////////////
@@ -223,78 +189,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
+	HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 
-	  //get_sensor_values();
+	//get_sensor_values();
 
-	  //pid_control();
+	//pid_control();
 
-	  wheel_speed = get_wheel_speed(1.0, 0.0, 0.0);
-	  printf("wheel_speed 1: %f, 2:%f, 3:%f, 4:%f\r\n", wheel_speed[0], wheel_speed[1], wheel_speed[2], wheel_speed[3]);
-	  //write_speed_to_motors();
-
-
-	  //switch (buffer[0]){
-	  	  //Command message
-	  	  //case 1:
-			  //command_t cmd;
-			  //command_t* p_cmd = &cmd;
-
-			  //get_command_from_buffer(buffer, p_cmd);
-
-
-			  //control_system();
-
-			  //reverse_kinematics();
-
-			  //activate_motors();
-
-	  	  //case 2:
-
-	  //}
-
-	  //printf("des_vx: %f\r\n", p_msg->des_vx);
-	  //printf("des_vy: %f\r\n", p_msg->des_vy);
-	  //printf("des_orient: %f\r\n", p_msg->des_orient);
-	  //printf("cur_orient: %f\r\n", p_msg->cur_orient);
-	  //printf("kik_sig: %d\r\n", p_msg->kik_sig);
-
+	wheel_speed = get_wheel_speed(3.0, 0.0, 0.0, 0.0);
+	printf("wheel_speed 1: %f, 2:%f, 3:%f, 4:%f\r\n", wheel_speed[0], wheel_speed[1], wheel_speed[2], wheel_speed[3]);
+	write_speed_to_motors(wheel_speed);
 
 	  HAL_Delay(1000);
 	#ifdef RADIO
-	  uint8_t buffer[PAYLOAD_SIZE] = {"error"};
-	  rf24_status_t device_status;
-	  rf24_status_t read_status = 8;
-
-
-	  if ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
-	      while ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
-            printf("available %d\t", device_status);
-	          read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
-	      }
-	  }
-    else {
-      printf("not able to read %d\t", device_status);
-    }
-
-	  if(read_status == RF24_SUCCESS){
-		  printf("read ok\t");
-		  des_vx = (buffer[0]<<8) + buffer[1];
-		  des_vy = (buffer[2]<<8) + buffer[3];
-		  des_orient = ((buffer[4]<<8) + buffer[5])>>1;
-		  cur_orient = ((buffer[6]<<8) + buffer[7])>>1;
-		  kik_sig = buffer[7] & 0b00000001;
-		  printf("\ndes_vx: %d", des_vx);
-		  printf("\ndes_vy: %d", des_vy);
-		  printf("\ndes_orient: %d", des_orient);
-		  printf("\ncur_orient: %d", cur_orient);
-		  printf("\nkik_sig: %d", kik_sig);
-	  }else{
-		  printf("not able to read %d\t", read_status);
-	  }
-
-	  printf("%d - %s\r\n", loop++, buffer);
-#endif
+	  radio_interrupt();
+	#endif
   }
   /* USER CODE END 3 */
 }

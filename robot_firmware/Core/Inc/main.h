@@ -71,10 +71,6 @@ void Error_Handler(void);
 #define RADIO_MISO_GPIO_Port GPIOA
 #define RADIO_MOSI_Pin GPIO_PIN_7
 #define RADIO_MOSI_GPIO_Port GPIOA
-#define SERIAL_TX_Pin GPIO_PIN_9
-#define SERIAL_TX_GPIO_Port GPIOA
-#define SERIAL_RX_Pin GPIO_PIN_10
-#define SERIAL_RX_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
