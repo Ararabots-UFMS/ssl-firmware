@@ -7,7 +7,7 @@ period_desejado = 1/freq_desejada
 
 prescaler = int(input("Digite o valor do prescaler: "))
 
-freq = 72000000 / prescaler
+freq = 64000000 / prescaler
 
 period = 1/freq
 

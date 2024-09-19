@@ -18,8 +18,8 @@
 #define pwm_min 	50
 #define pwm_max		100
 
-float map(float x, float in_min, float in_max, float out_min, float out_max){
-  return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
+float map(float in_value, float in_min, float in_max, float out_min, float out_max){
+  return (in_value - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
 }
 
 void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER){

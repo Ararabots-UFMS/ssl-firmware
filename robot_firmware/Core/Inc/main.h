@@ -36,6 +36,18 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef struct command {
+	float des_vx, des_vy;
+	float des_orient;
+	float cur_orient;
+	uint8_t kik_sig;
+} command_t;
+
+typedef struct pidvalues {
+	float p;
+	float pi;
+	float pd;
+} pidvalues_t;
 
 /* USER CODE END ET */
 

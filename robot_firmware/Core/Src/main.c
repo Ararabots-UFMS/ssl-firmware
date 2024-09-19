@@ -46,18 +46,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef struct command {
-	float des_vx, des_vy;
-	float des_orient;
-	float cur_orient;
-	uint8_t kik_sig;
-} command_t;
-
-typedef struct pidvalues {
-	float p;
-	float pi;
-	float pd;
-} pidvalues_t;
 
 /* USER CODE END PTD */
 
@@ -91,16 +79,20 @@ void SystemClock_Config(void);
 
 	int __io_getchar(void);
 #endif
-
-void get_command_from_buffer(uint8_t buffer[], command_t* result);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// command_t cmd;
-// command_t *p_cmd = &cmd;
+command_t cmd;
+command_t *p_cmd = &cmd;
 
+pidvalues_t pid;
+pidvalues_t *p_pid = &pid;
+
+#ifdef RADIO
+	rf24_dev_t* p_dev; /* Pointer to module instance */
+#endif
 /* USER CODE END 0 */
 
 /**
@@ -135,14 +127,15 @@ int main(void)
   MX_SPI1_Init();
   MX_USART3_UART_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim2);
 
   motor_init(htim1, TIMER);
 
 
 	#ifdef RADIO
-		rf24_dev_t* p_dev; /* Pointer to module instance */
-		p_dev = radio_init(HSPI, PAYLOAD_SIZE);
+		p_dev = radio_init(HSPI);
 	#endif
 
   ////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,18 +184,16 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 
-	//get_sensor_values();
+	//TODO//get_MPU_values();
+	//TODO//merge_sensors();
 
-	//pid_control();
+	//TODO//pid_control();
 
 	wheel_speed = get_wheel_speed(3.0, 0.0, 0.0, 0.0);
-	printf("wheel_speed 1: %f, 2:%f, 3:%f, 4:%f\r\n", wheel_speed[0], wheel_speed[1], wheel_speed[2], wheel_speed[3]);
-	write_speed_to_motors(wheel_speed);
 
-	  HAL_Delay(1000);
-	#ifdef RADIO
-	  radio_interrupt();
-	#endif
+	write_speed_to_motors(TIMER, wheel_speed);
+
+	  HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
@@ -267,40 +258,14 @@ int __io_getchar(void)
   return ch;
 }
 
-
-void get_command_from_buffer(uint8_t *buffer, command_t* result){
-
-	union {
-		uint8_t ints[4];
-		float value;
-	} uint8_to_float;
-
-	uint8_to_float.ints[3] = buffer[1];
-	uint8_to_float.ints[2] = buffer[2];
-	uint8_to_float.ints[1] = buffer[3];
-	uint8_to_float.ints[0] = buffer[4];
-	result->des_vx = uint8_to_float.value;
-
-	uint8_to_float.ints[3] = buffer[5];
-	uint8_to_float.ints[2] = buffer[6];
-	uint8_to_float.ints[1] = buffer[7];
-	uint8_to_float.ints[0] = buffer[8];
-	result->des_vy = uint8_to_float.value;
-
-	uint8_to_float.ints[3] = buffer[9];
-	uint8_to_float.ints[2] = buffer[10];
-	uint8_to_float.ints[1] = buffer[11];
-	uint8_to_float.ints[0] = buffer[12];
-	result->des_orient = uint8_to_float.value;
-
-	uint8_to_float.ints[3] = buffer[13];
-	uint8_to_float.ints[2] = buffer[14];
-	uint8_to_float.ints[1] = buffer[15];
-	uint8_to_float.ints[0] = buffer[16];
-	result->cur_orient = uint8_to_float.value;
-
-	result->kik_sig = buffer[17] & 0b00000001;
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM2){
+		#ifdef RADIO
+			radio_read_and_update(p_dev, p_cmd, p_pid);
+		#endif
+	}
 }
+
 /* USER CODE END 4 */
 
 /**
