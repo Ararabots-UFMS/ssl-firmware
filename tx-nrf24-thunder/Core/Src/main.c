@@ -119,7 +119,7 @@ int main(void)
   p_dev->platform_setup.ce_port = CE_GPIO_Port;
   p_dev->platform_setup.ce_pin = CE_Pin;
 
-  p_dev->payload_size = 15;
+  p_dev->payload_size = 32;
 
   rf24_init(p_dev);
 
@@ -133,7 +133,7 @@ int main(void)
   device_status = rf24_open_writing_pipe(p_dev, addresses[1]);
   device_status = rf24_open_reading_pipe(p_dev, 1, addresses[0]);
 
-  uint8_t buffer[] = {'V', 'i', 'r', 't', 'u', 'a', 'l', ' ', 'h', 'u', 'g', 's', '!', '\r', '\n'};
+  uint8_t buffer[] = {'V', 'i', 'r', 't', 'u', 'a', 'l', ' ', 'h', 'u', 'g', 's', '!', ' ', 'F', 'a', 'c', 'a', ' ', 'o', ' ', 'L', ' ', 'i', 'm', 'e', 'd', 'i', 'a', 't', 'o', '\0'};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -145,7 +145,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-	  uint8_t tentei[15] = {"tentei!\n"};
+	  uint8_t tentei[32] = {"tentei!\n"};
 	  device_status = rf24_write(p_dev, buffer, sizeof(buffer), true);
 	  if(device_status == RF24_SUCCESS){
 		  HAL_UART_Transmit(&huart1, buffer, sizeof(buffer), 10);

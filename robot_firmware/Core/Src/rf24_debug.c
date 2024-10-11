@@ -23,7 +23,6 @@
 /*****************************************
  * Private Macros
  *****************************************/
-
 #ifdef DEBUG
 #define PRINTF printf
 #else

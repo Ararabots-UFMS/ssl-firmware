@@ -106,12 +106,6 @@ static uint32_t m_tx_delay = 250;
  * Public Functions Bodies Definitions
  *****************************************/
 
-rf24_status_t rf24_delay(uint32_t ms) {
-    HAL_Delay(ms);
-
-    return RF24_SUCCESS;
-}
-
 rf24_status_t rf24_get_default_config(rf24_dev_t* p_dev) {
     p_dev->platform_setup.spi_timeout = DEFAULT_SPI_TIMEOUT_MS;
     p_dev->payload_size = DEFAULT_PAYLOAD_SIZE;
@@ -803,4 +797,8 @@ rf24_irq_t rf24_irq_callback(rf24_dev_t* p_dev) {
     return irq_values;
 }
 
-__weak rf24_status_t rf24_delay(uint32_t ms);
+rf24_status_t rf24_delay(uint32_t ms) {
+    HAL_Delay(ms);
+
+    return RF24_SUCCESS;
+}

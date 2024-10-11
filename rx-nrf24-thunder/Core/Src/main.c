@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <string.h>
 #include "rf24.h"
+#include <stdio.h>
 
 /* USER CODE END Includes */
 
@@ -33,6 +34,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SERIAL_UART huart1
 
 /* USER CODE END PD */
 
@@ -47,7 +49,8 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+rf24_dev_t device; /* Module instance */
+rf24_dev_t* p_dev = &device; /* Pointer to module instance */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,7 +59,8 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+int __io_putchar(int ch);
+void read_radio(rf24_dev_t* p_dev);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,46 +101,38 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   //rf24_delay(100);
-    rf24_dev_t device; /* Module instance */
-    rf24_dev_t* p_dev = &device; /* Pointer to module instance */
+  // rf24_dev_t device; /* Module instance */
+  // rf24_dev_t* p_dev = &device; /* Pointer to module instance */
+	rf24_get_default_config(p_dev);
 
-    /* Device config */
+	p_dev->platform_setup.hspi = &hspi1;
 
-    /* Get default configuration */
-    rf24_get_default_config(p_dev);
+	p_dev->platform_setup.csn_port = CSN_GPIO_Port;
+	p_dev->platform_setup.csn_pin = CSN_Pin;
 
-    /* The SPI2 was chosen in Cube */
-    p_dev->platform_setup.hspi = &hspi1;
+	p_dev->platform_setup.irq_port = IRQ_GPIO_Port;
+	p_dev->platform_setup.irq_pin = IRQ_Pin;
 
-    /* CSN on pin PC6 */
-    p_dev->platform_setup.csn_port = CSN_GPIO_Port;
-    p_dev->platform_setup.csn_pin = CSN_Pin;
+	p_dev->platform_setup.ce_port = CE_GPIO_Port;
+	p_dev->platform_setup.ce_pin = CE_Pin;
 
-    /* IRQ on pin PC7 */
-    p_dev->platform_setup.irq_port = IRQ_GPIO_Port;
-    p_dev->platform_setup.irq_pin = IRQ_Pin;
+	p_dev->payload_size = 32;
 
-    /* CE on pin PC8 */
-    p_dev->platform_setup.ce_port = CE_GPIO_Port;
-    p_dev->platform_setup.ce_pin = CE_Pin;
+	rf24_init(p_dev);
 
-    p_dev->payload_size = 15;
+	uint8_t addresses[2][5] = {{0xE7, 0xE7, 0xE7, 0xE7, 0xE8}, {0xC2, 0xC2, 0xC2, 0xC2, 0xC1}};
 
-    rf24_init(p_dev);
+	//No idea what output_power should be
+	//rf24_set_output_power(p_dev, output_power);
 
-    uint8_t addresses[2][5] = {{0xE7, 0xE7, 0xE7, 0xE7, 0xE8}, {0xC2, 0xC2, 0xC2, 0xC2, 0xC1}};
+	rf24_status_t device_status;
 
-    //No idea what output_power should be
-    //rf24_set_output_power(p_dev, output_power);
+	device_status = rf24_open_writing_pipe(p_dev, addresses[0]);
+	device_status = rf24_open_reading_pipe(p_dev, 1, addresses[1]);
 
-    rf24_status_t device_status; /* Variable to receive the statuses returned by the functions */
+	device_status = rf24_start_listening(p_dev);
+  /* Get default configuration */
 
-    device_status = rf24_open_writing_pipe(p_dev, addresses[0]);
-    device_status = rf24_open_reading_pipe(p_dev, 1, addresses[1]);
-
-    device_status = rf24_start_listening(p_dev);
-
-    uint8_t loop=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,22 +142,24 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	    /**/
 	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+
 	  rf24_status_t device_status;
 	  rf24_status_t read_status;
 
-	  uint8_t buffer[15] = {"nao"};
+	  uint8_t buffer[32] = {"nao"};
 
-	  if ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
-	      while ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
-	          read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
-	      }
+	  while ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
+		  read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
 	  }
 
-	  char tmp[40];
-	  sprintf(tmp, "%d - %s\r\n", loop, buffer);
-	  HAL_UART_Transmit(&huart1, tmp, strlen(tmp), 10);
-	  loop++;
+	  printf("while: %s \r\n", buffer);
+	  HAL_Delay(1000);
+
+	  read_radio(p_dev);
+
 	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
@@ -324,6 +322,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int __io_putchar(int ch)
+{
+  HAL_UART_Transmit(&SERIAL_UART, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
+
+void read_radio(rf24_dev_t* p_dev){
+	  rf24_status_t device_status;
+	  rf24_status_t read_status;
+
+	  uint8_t buffer[32] = {"nao"};
+
+	  while ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
+		  read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
+	  }
+
+	  printf("funct: %s \r\n", buffer);
+}
 
 /* USER CODE END 4 */
 

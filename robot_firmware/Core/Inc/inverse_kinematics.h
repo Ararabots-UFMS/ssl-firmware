@@ -15,19 +15,21 @@
  *      Author: allan
  */
 
-#include "inverse_kinematics.h"
+
+typedef struct inverse_kinematics {
+	float *vx;
+	float *vy;
+	float *vtheta;
+	float **p_jacobian;
+	float **p_velocities;
+	float **p_result;
+} inverse_kinematics_t;
 
 #define PI 3.14159265358979323846
 
-// function to multiply two matrices
-void multiply_matrices(	float **matA, int rowsA, int colsA,
-						float **matB, int rowsB, int colsB,
-						float **result);
+void inverse_kinematics_init(inverse_kinematics_t* inverse_kinematics);
 
-void multiply_matrix_scalar(float **result, int rowsR, int colsR,
-							float scalar);
-
-float* get_wheel_speed(float vx, float vy, float vtheta, float curtheta);
+void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics, float cur_theta);
 
 
 #endif /* INC_INVERSE_KINEMATICS_H_ */

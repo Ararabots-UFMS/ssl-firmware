@@ -10,10 +10,9 @@
 
 #include "rf24.h"
 
-rf24_dev_t* radio_init(SPI_HandleTypeDef hspi);
+#include "pid.h"
 
-void radio_read_and_update(rf24_dev_t* p_dev, command_t *cmd, pidvalues_t *pid);
+void radio_read_and_update(rf24_dev_t* p_dev, command_t *cmd, PID_TypeDef *uPID, float* orientation);
 
-void get_command_from_buffer(uint8_t *buffer, command_t* result);
 
 #endif /* INC_RADIO_INTERFACE_H_ */
