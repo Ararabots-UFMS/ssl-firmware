@@ -29,7 +29,7 @@ typedef struct inverse_kinematics {
 
 void inverse_kinematics_init(inverse_kinematics_t* inverse_kinematics);
 
-void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics, float cur_theta);
+void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics);
 
 
 #endif /* INC_INVERSE_KINEMATICS_H_ */

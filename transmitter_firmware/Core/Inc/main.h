@@ -36,13 +36,6 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-typedef struct command {
-	float vx;
-	float vy;
-	float vtheta;
-	uint8_t kik_sig;
-} command_t;
-
 
 /* USER CODE END ET */
 
@@ -64,12 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BUILTIN_LED_Pin GPIO_PIN_13
-#define BUILTIN_LED_GPIO_Port GPIOC
-#define KICKER_Pin GPIO_PIN_0
-#define KICKER_GPIO_Port GPIOA
-#define INFRARED_Pin GPIO_PIN_1
-#define INFRARED_GPIO_Port GPIOA
 #define RADIO_IRQ_Pin GPIO_PIN_2
 #define RADIO_IRQ_GPIO_Port GPIOA
 #define RADIO_CSN_Pin GPIO_PIN_3
@@ -84,9 +71,6 @@ void Error_Handler(void);
 #define RADIO_MOSI_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
-
-#define PAYLOAD_SIZE 26			//size in bytes for radio communication
-//#define PI 3.141592653589793238462643383279
 
 /* USER CODE END Private defines */
 

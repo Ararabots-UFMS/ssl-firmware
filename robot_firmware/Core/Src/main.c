@@ -92,10 +92,10 @@ void calculate_IMU_error();
 command_t cmd;
 command_t *p_cmd = &cmd;
 
-float yaw = 0;
-
 rf24_dev_t radio_device;
 rf24_dev_t *p_radio_dev = &radio_device; /* Pointer to module instance */
+
+uint8_t address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
 
 inverse_kinematics_t inverse_kinematics;
 inverse_kinematics_t *p_inverse_kinematics = &inverse_kinematics;
@@ -164,30 +164,32 @@ int main(void) {
 
 	/* Get default configuration */
 	rf24_get_default_config(p_radio_dev);
+	p_radio_dev->platform_setup.spi_timeout = 1000;
+	p_radio_dev->payload_size = PAYLOAD_SIZE;
+	p_radio_dev->addr_width = 5;
+	p_radio_dev->datarate = RF24_2MBPS;
+	p_radio_dev->channel = 76;
+
+	for (uint8_t i = 0; i < RF24_ADDRESS_MAX_SIZE; i++) {
+		p_radio_dev->pipe0_reading_address[i] = 0;
+	}
 
 	/* Set spi to be used */
 	p_radio_dev->platform_setup.hspi = &HSPI;
 
-	/* CSN pin */
+	p_radio_dev->payload_size = PAYLOAD_SIZE;
+
 	p_radio_dev->platform_setup.csn_port = RADIO_CSN_GPIO_Port;
 	p_radio_dev->platform_setup.csn_pin = RADIO_CSN_Pin;
 
-	/* IRQ pin */
 	p_radio_dev->platform_setup.irq_port = RADIO_IRQ_GPIO_Port;
 	p_radio_dev->platform_setup.irq_pin = RADIO_IRQ_Pin;
 
-	/* CE pin */
 	p_radio_dev->platform_setup.ce_port = RADIO_CE_GPIO_Port;
 	p_radio_dev->platform_setup.ce_pin = RADIO_CE_Pin;
 
-	p_radio_dev->payload_size = PAYLOAD_SIZE;
-
 	while (rf24_init(p_radio_dev) != RF24_SUCCESS)
 		;
-
-	//TODO: change this to a constant with define
-	uint8_t addresses[2][5] = { { 0xE7, 0xE7, 0xE7, 0xE7, 0xE8 }, { 0xC2, 0xC2,
-			0xC2, 0xC2, 0xC1 } };
 
 	//TODO: test different output power levels
 	//rf24_set_output_power(p_radio_dev, output_power);
@@ -195,11 +197,7 @@ int main(void) {
 	rf24_status_t device_status = RF24_SUCCESS; /* Variable to receive the statuses returned by the functions */
 
 	if (device_status == RF24_SUCCESS) {
-		device_status = rf24_open_writing_pipe(p_radio_dev, addresses[0]);
-	}
-
-	if (device_status == RF24_SUCCESS) {
-		device_status = rf24_open_reading_pipe(p_radio_dev, 1, addresses[1]);
+		device_status = rf24_open_reading_pipe(p_radio_dev, 1, address);
 	}
 
 	if (device_status == RF24_SUCCESS) {
@@ -271,20 +269,15 @@ int main(void) {
 		HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 
 		/*		READ DATA FROM MPU6050 and treat it		*/
-		previousTime = currentTime;
-		currentTime = HAL_GetTick();
-		elapsedTime = (currentTime - previousTime);
-		MPU6050_Read_All(&hi2c1, &MPU6050);
-		yaw += ((MPU6050.Gz - GyroErrorZ) * elapsedTime) / 1000;
-		if (yaw < -PI)
-			yaw += 2 * PI;
-		if (yaw > PI)
-			yaw -= 2 * PI;
+
+		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
 
 		/*		READ KICK SIGNAL AND INFRARED FOR KICKCING		*/
 		if (p_cmd->kik_sig == 1) {
 			int ir = HAL_GPIO_ReadPin(INFRARED_GPIO_Port, INFRARED_Pin);
-			printf(">infrared:%d\r\n", ir);
+
+			//printf(">infrared:%d\r\n", ir);
+
 			if (ir == 0) {
 				HAL_GPIO_WritePin(KICKER_GPIO_Port, KICKER_Pin, GPIO_PIN_SET);
 				HAL_Delay(3);
@@ -292,16 +285,18 @@ int main(void) {
 			}
 		}
 
-		//TODO: merge_sensors();
-
 		/*		Compute compensated values for Vtheta		*/
 		PID_Compute(&TPIDVTheta);
 
 		/*		Get wheel speed from inverse kinematics		*/
-		calculate_wheel_speed(p_inverse_kinematics, yaw);
+		calculate_wheel_speed(p_inverse_kinematics);
 
 		/*		Write speed to motors		*/
 		write_speed_to_motors(MOTOR_TIMER, p_inverse_kinematics);
+
+		previousTime = currentTime;
+		currentTime = HAL_GetTick();
+		elapsedTime = (currentTime - previousTime);
 
 		printf(">elapsed_time:%lu\r\n", elapsedTime);
 		HAL_Delay(50);
@@ -351,24 +346,11 @@ int __io_putchar(int ch) {
 	HAL_UART_Transmit(&SERIAL_UART, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
 	return (ch);
 }
-
-int __io_getchar(void) {
-	uint8_t ch = 0;
-
-	/* Clear the Overrun flag just before receiving the first character */
-	__HAL_UART_CLEAR_OREFLAG(&SERIAL_UART);
-
-	/* Wait for reception of a character on the USART RX line and echo this
-	 * character on console */
-	HAL_UART_Receive(&SERIAL_UART, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
-	HAL_UART_Transmit(&SERIAL_UART, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
-	return (ch);
-}
 #endif
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
-		radio_read_and_update(p_radio_dev, p_cmd, &TPIDVTheta, &yaw);
+		radio_read_and_update(p_radio_dev, p_cmd, &TPIDVTheta);
 	}
 }
 

@@ -67,12 +67,12 @@ void inverse_kinematics_init(inverse_kinematics_t* inverse_kinematics){
 	/////////////////////////////////////////////////////////////////////////////
 }
 
-void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics, float cur_theta){
+void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics){
 
-	float jacobian[4][3] = {{cos(wheel_angles[0]+cur_theta), sin(wheel_angles[0]+cur_theta), ROBOT_RADIUS},
-	                        {cos(wheel_angles[1]+cur_theta), sin(wheel_angles[1]+cur_theta), ROBOT_RADIUS},
-	                        {cos(wheel_angles[2]+cur_theta), sin(wheel_angles[2]+cur_theta), ROBOT_RADIUS},
-							{cos(wheel_angles[3]+cur_theta), sin(wheel_angles[3]+cur_theta), ROBOT_RADIUS}};
+	float jacobian[4][3] = {{cos(wheel_angles[0]), sin(wheel_angles[0]), ROBOT_RADIUS},
+	                        {cos(wheel_angles[1]), sin(wheel_angles[1]), ROBOT_RADIUS},
+	                        {cos(wheel_angles[2]), sin(wheel_angles[2]), ROBOT_RADIUS},
+							{cos(wheel_angles[3]), sin(wheel_angles[3]), ROBOT_RADIUS}};
 
 	///////////////////////////////////////////////////////////
 	for (int i = 0; i < 4; i++) {

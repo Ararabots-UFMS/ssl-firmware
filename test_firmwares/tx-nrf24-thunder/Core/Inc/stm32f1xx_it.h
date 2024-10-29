@@ -1,9 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    stm32f1xx_it.h
+  * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   * @attention
   *
@@ -19,15 +18,12 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __STM32F1xx_IT_H
+#define __STM32F1xx_IT_H
 
 #ifdef __cplusplus
-extern "C" {
+ extern "C" {
 #endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -36,13 +32,6 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-typedef struct command {
-	float vx;
-	float vy;
-	float vtheta;
-	uint8_t kik_sig;
-} command_t;
-
 
 /* USER CODE END ET */
 
@@ -57,41 +46,21 @@ typedef struct command {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
+void NMI_Handler(void);
+void HardFault_Handler(void);
+void MemManage_Handler(void);
+void BusFault_Handler(void);
+void UsageFault_Handler(void);
+void SVC_Handler(void);
+void DebugMon_Handler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
-
-/* Private defines -----------------------------------------------------------*/
-#define BUILTIN_LED_Pin GPIO_PIN_13
-#define BUILTIN_LED_GPIO_Port GPIOC
-#define KICKER_Pin GPIO_PIN_0
-#define KICKER_GPIO_Port GPIOA
-#define INFRARED_Pin GPIO_PIN_1
-#define INFRARED_GPIO_Port GPIOA
-#define RADIO_IRQ_Pin GPIO_PIN_2
-#define RADIO_IRQ_GPIO_Port GPIOA
-#define RADIO_CSN_Pin GPIO_PIN_3
-#define RADIO_CSN_GPIO_Port GPIOA
-#define RADIO_CE_Pin GPIO_PIN_4
-#define RADIO_CE_GPIO_Port GPIOA
-#define RADIO_SCK_Pin GPIO_PIN_5
-#define RADIO_SCK_GPIO_Port GPIOA
-#define RADIO_MISO_Pin GPIO_PIN_6
-#define RADIO_MISO_GPIO_Port GPIOA
-#define RADIO_MOSI_Pin GPIO_PIN_7
-#define RADIO_MOSI_GPIO_Port GPIOA
-
-/* USER CODE BEGIN Private defines */
-
-#define PAYLOAD_SIZE 26			//size in bytes for radio communication
-//#define PI 3.141592653589793238462643383279
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H */
+#endif /* __STM32F1xx_IT_H */
