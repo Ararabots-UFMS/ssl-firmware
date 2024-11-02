@@ -91,9 +91,11 @@ command_t *p_cmd = &cmd;
 rf24_dev_t radio_device;
 rf24_dev_t *p_radio_dev = &radio_device; /* Pointer to module instance */
 
-uint8_t address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
+uint8_t my_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
+uint8_t transmitter_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC3 };
 
-float* inverse_kinematics_result;
+
+float *inverse_kinematics_result;
 
 MPU6050_t MPU6050;
 float GyroErrorX;
@@ -153,11 +155,11 @@ int main(void) {
 	/* RADIO CONFIGURATION AND INITIALIZATION */
 
 	/* Get default configuration */
-	p_radio_dev->platform_setup.spi_timeout = 1000;
+	p_radio_dev->platform_setup.spi_timeout = 1000U;
 	p_radio_dev->payload_size = PAYLOAD_SIZE;
-	p_radio_dev->addr_width = 5;
-	p_radio_dev->datarate = RF24_2MBPS;
-	p_radio_dev->channel = 76;
+	p_radio_dev->addr_width = 5U;
+	p_radio_dev->datarate = RF24_1MBPS;
+	p_radio_dev->channel = 76U;
 
 	for (uint8_t i = 0; i < RF24_ADDRESS_MAX_SIZE; i++) {
 		p_radio_dev->pipe0_reading_address[i] = 0;
@@ -165,8 +167,6 @@ int main(void) {
 
 	/* Set spi to be used */
 	p_radio_dev->platform_setup.hspi = &HSPI;
-
-	p_radio_dev->payload_size = PAYLOAD_SIZE;
 
 	p_radio_dev->platform_setup.csn_port = RADIO_CSN_GPIO_Port;
 	p_radio_dev->platform_setup.csn_pin = RADIO_CSN_Pin;
@@ -186,7 +186,11 @@ int main(void) {
 	rf24_status_t device_status = RF24_SUCCESS; /* Variable to receive the statuses returned by the functions */
 
 	if (device_status == RF24_SUCCESS) {
-		device_status = rf24_open_reading_pipe(p_radio_dev, 1, address);
+		device_status = rf24_open_writing_pipe(p_radio_dev, transmitter_address);
+	}
+
+	if (device_status == RF24_SUCCESS) {
+		device_status = rf24_open_reading_pipe(p_radio_dev, 1, my_address);
 	}
 
 	if (device_status == RF24_SUCCESS) {
@@ -240,9 +244,9 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	uint32_t currentTime = HAL_GetTick();
-	uint32_t previousTime;
-	uint32_t elapsedTime;
+	//uint32_t currentTime = HAL_GetTick();
+	//uint32_t previousTime;
+	//uint32_t elapsedTime;
 
 	HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 
@@ -278,11 +282,11 @@ int main(void) {
 		/*		Write speed to motors		*/
 		write_speed_to_motors(MOTOR_TIMER, inverse_kinematics_result);
 
-		previousTime = currentTime;
-		currentTime = HAL_GetTick();
-		elapsedTime = (currentTime - previousTime);
+		//previousTime = currentTime;
+		//currentTime = HAL_GetTick();
+		//elapsedTime = (currentTime - previousTime);
 
-		printf(">elapsed_time:%lu\r\n", elapsedTime);
+		//printf(">elapsed_time:%lu\r\n", elapsedTime);
 	}
 	/* USER CODE END 3 */
 }

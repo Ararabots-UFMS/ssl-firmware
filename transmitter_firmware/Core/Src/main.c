@@ -68,7 +68,8 @@ int __io_putchar(int ch);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint8_t address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
+uint8_t robot_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
+uint8_t my_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC3 };
 
 rf24_dev_t device; /* Module instance */
 rf24_dev_t *p_dev = &device; /* Pointer to module instance */
@@ -112,11 +113,11 @@ int main(void) {
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 
-	p_dev->platform_setup.spi_timeout = 1000;
+	p_dev->platform_setup.spi_timeout = 1000U;
 	p_dev->payload_size = PAYLOAD_SIZE;
-	p_dev->addr_width = 5;
-	p_dev->datarate = RF24_2MBPS;
-	p_dev->channel = 76;
+	p_dev->addr_width = 5U;
+	p_dev->datarate = RF24_1MBPS;
+	p_dev->channel = 76U;
 
 	for (uint8_t i = 0; i < RF24_ADDRESS_MAX_SIZE; i++) {
 		p_dev->pipe0_reading_address[i] = 0;
@@ -137,7 +138,8 @@ int main(void) {
 
 	rf24_set_output_power(p_dev, RF24_18_dBm);
 
-	rf24_open_writing_pipe(p_dev, address);
+	rf24_open_writing_pipe(p_dev, robot_address);
+	rf24_open_reading_pipe(p_dev, 1, robot_address);
 
 	printf("Waiting for robot count...\r\n");
 
