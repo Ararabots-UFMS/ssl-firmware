@@ -136,6 +136,11 @@ int main(void)
 
   rf24_start_listening(p_dev);
 
+  union {
+    	uint8_t ints[4];
+    	float value;
+    } uint8_to_float;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,12 +155,26 @@ int main(void)
 	  uint8_t buffer[15] = {"nada\r\n"};
 
 	  if ((rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
+		  printf("IF\r\n");
 	      while ((rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
+	    	  printf("while\r\n");
 	    	  read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
 	      }
 	  }
 
-	  printf("buffer: %s\r\n", buffer);
+	  if (buffer[0] == 1){
+		  printf("buffer[0] == 1\r\n");
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  }
+
+	  uint8_to_float.ints[3] = buffer[1];
+	  uint8_to_float.ints[2] = buffer[2];
+	  uint8_to_float.ints[1] = buffer[3];
+	  uint8_to_float.ints[0] = buffer[4];
+
+
+	  printf("buffer: %d%d%d%d\r\n", buffer[1],buffer[2],buffer[3],buffer[4]);
+	  printf("uint8_to_float.value: %f\r\n", uint8_to_float.value);
 
 	  //rf24_debug_dump_registers(p_dev);
 

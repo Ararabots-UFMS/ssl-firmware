@@ -120,6 +120,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  // HAL_GPIO_WritePin(INVERSE_GPIO_Port, INVERSE_Pin, GPIO_PIN_RESET);
+
   #if Calibrate
     TIM1->CCR1 = 100;  // Set the maximum pulse (2ms)
     HAL_Delay (2000);  // wait for 1 beep
@@ -145,11 +147,11 @@ int main(void)
 
    //HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&ADC_Data, 1);
 
-   TIM1->CCR1 = 75;
+   /*TIM1->CCR1 = 75;
    TIM1->CCR2 = 75;
    TIM1->CCR3 = 75;
    TIM1->CCR4 = 75;
-   HAL_Delay (2000);
+   HAL_Delay (2000);*/
 
   /* USER CODE END 2 */
 
@@ -161,10 +163,64 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  	HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		TIM1->CCR1 = 60;
+		TIM1->CCR2 = 60;
+		TIM1->CCR3 = 60;
+		TIM1->CCR4 = 60;
+
+		HAL_Delay(5000);
+
 		TIM1->CCR1 = 50;
 		TIM1->CCR2 = 50;
 		TIM1->CCR3 = 50;
 		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_RESET);
+
+		TIM1->CCR1 = 90;
+		TIM1->CCR2 = 90;
+		TIM1->CCR3 = 90;
+		TIM1->CCR4 = 90;
+
+		HAL_Delay(5000);
+
+		TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(5);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		HAL_Delay(5000);
+
+		TIM1->CCR1 = 60;
+		TIM1->CCR2 = 60;
+		TIM1->CCR3 = 60;
+		TIM1->CCR4 = 60;
+
+		HAL_Delay(5000);
+
+		TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);
 
   }
   /* USER CODE END 3 */
@@ -363,12 +419,24 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, INVERSE1_Pin|INVERSE2_Pin|INVERSE3_Pin|INVERSE4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : INVERSE1_Pin INVERSE2_Pin INVERSE3_Pin INVERSE4_Pin */
+  GPIO_InitStruct.Pin = INVERSE1_Pin|INVERSE2_Pin|INVERSE3_Pin|INVERSE4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

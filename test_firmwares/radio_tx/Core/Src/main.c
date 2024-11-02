@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -29,6 +30,7 @@
 #include <stdio.h>
 
 #include "rf24_debug.h"
+#include "mpu6050.h"
 
 /* USER CODE END Includes */
 
@@ -40,7 +42,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define SERIAL_UART huart1
+#define SERIAL_UART huart3
 
 /* USER CODE END PD */
 
@@ -52,7 +54,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+MPU6050_t MPU6050;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,6 +69,10 @@ int __io_getchar(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void calculate_IMU_error();
+
+float AccErrorX, AccErrorY, AccErrorZ, GyroErrorX, GyroErrorY, GyroErrorZ;
+
 
 /* USER CODE END 0 */
 
@@ -100,8 +106,16 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
-  MX_USART1_UART_Init();
+  MX_USART3_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+
+  printf("Initializing\r\n");
+  HAL_Delay(500);
+  while (MPU6050_Init(&hi2c1) == 1) {
+  }
+  printf("calculating error\r\n");
+  calculate_IMU_error(MPU6050);
 
   rf24_dev_t device; /* Module instance */
   rf24_dev_t* p_dev = &device; /* Pointer to module instance */
@@ -137,7 +151,13 @@ int main(void)
   rf24_open_writing_pipe(p_dev, addresses[1]);
   rf24_open_reading_pipe(p_dev, 1, addresses[0]);
 
-  uint8_t buffer[] = {'V', 'i', 'r', 't', 'u', 'a', 'l', ' ', 'h', 'u', 'g', 's', '!', '\r', '\n'};
+  uint8_t buffer[15];
+
+  union {
+  	uint8_t ints[4];
+  	float value;
+  } uint8_to_float;
+
 
   /* USER CODE END 2 */
 
@@ -148,11 +168,27 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if ((rf24_write(p_dev, buffer, sizeof(buffer), true)) == RF24_SUCCESS){
-		  printf("Virtual Hugs!\r\n");
-	  }else{
-		  printf("tentei\r\n");
-	  }
+	MPU6050_Read_All(&hi2c1, &MPU6050);
+	uint8_to_float.value = MPU6050.Gx;
+
+	buffer[0] = 1;
+	buffer[1] = uint8_to_float.ints[3];
+	buffer[2] = uint8_to_float.ints[2];
+	buffer[3] = uint8_to_float.ints[1];
+	buffer[4] = uint8_to_float.ints[0];
+
+	// printf(">gyrox:%f,gyroy:%f,gyroz:%f\r\n", MPU6050.Gx - GyroErrorX,MPU6050.Gy - GyroErrorY, MPU6050.Gz - GyroErrorZ);
+
+	HAL_Delay(100);
+
+	if ((rf24_write(p_dev, buffer, sizeof(buffer), true)) == RF24_SUCCESS){
+		printf("Virtual Hugs!\r\n");
+		printf("uint8_to_float.value: %f\r\n", uint8_to_float.value);
+	}else{
+		printf("tentei\r\n");
+	}
+
+
 
 	  //rf24_debug_dump_registers(p_dev);
 
@@ -221,6 +257,35 @@ int __io_getchar(void)
   HAL_UART_Receive(&SERIAL_UART, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
   HAL_UART_Transmit(&SERIAL_UART, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
   return ch;
+}
+
+void calculate_IMU_error(MPU6050_t MPU6050) {
+	int c = 0;
+	int error_iterations = 10000;
+
+	while (c < error_iterations) {
+		MPU6050_Read_All(&hi2c1, &MPU6050);
+
+		// Sum all readings
+		AccErrorX = AccErrorX + MPU6050.Ax;
+		AccErrorY = AccErrorY + MPU6050.Ay;
+		AccErrorZ = AccErrorZ + (MPU6050.Az - 1);
+
+		// Sum all readings
+		GyroErrorX = GyroErrorX + MPU6050.Gx;
+		GyroErrorY = GyroErrorY + MPU6050.Gy;
+		GyroErrorZ = GyroErrorZ + MPU6050.Gz;
+		c++;
+	}
+	//Divide the sum by 200 to get the error value
+	AccErrorX = AccErrorX / error_iterations;
+	AccErrorY = AccErrorY / error_iterations;
+	AccErrorZ = AccErrorZ / error_iterations;
+	//Divide the sum by 200 to get the error value
+	GyroErrorX = GyroErrorX / error_iterations;
+	GyroErrorY = GyroErrorY / error_iterations;
+	GyroErrorZ = GyroErrorZ / error_iterations;
+	// Print the error values on the Serial Monitor
 }
 /* USER CODE END 4 */
 

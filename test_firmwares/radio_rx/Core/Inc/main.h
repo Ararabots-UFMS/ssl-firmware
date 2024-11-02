@@ -57,12 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
 #define RADIO_IRQ_Pin GPIO_PIN_2
 #define RADIO_IRQ_GPIO_Port GPIOA
-#define RADIO_CE_Pin GPIO_PIN_3
-#define RADIO_CE_GPIO_Port GPIOA
-#define RADIO_CSN_Pin GPIO_PIN_4
+#define RADIO_CSN_Pin GPIO_PIN_3
 #define RADIO_CSN_GPIO_Port GPIOA
+#define RADIO_CE_Pin GPIO_PIN_4
+#define RADIO_CE_GPIO_Port GPIOA
 #define RADIO_SCK_Pin GPIO_PIN_5
 #define RADIO_SCK_GPIO_Port GPIOA
 #define RADIO_MISO_Pin GPIO_PIN_6
