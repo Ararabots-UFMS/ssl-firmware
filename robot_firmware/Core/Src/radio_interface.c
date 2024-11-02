@@ -60,24 +60,27 @@ void get_command_from_buffer(uint8_t *buffer, command_t *result, PID_TypeDef *uP
 	uPID->Ki = uint8_to_float.value;
 }
 
+uint8_t buffer[PAYLOAD_SIZE] = { 0b00000000, 0b00000000, 0b00000000,
+		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+		0b00000000, 0b00000000, 0b00000000, };
+
+rf24_status_t device_status;
+rf24_status_t read_status = RF24_UNKNOWN_ERROR;
+
 rf24_status_t radio_read_and_update(rf24_dev_t *p_dev, command_t *cmd,
 		PID_TypeDef *uPID) {
 
-	uint8_t buffer[PAYLOAD_SIZE] = { 0b00000000, 0b00000000, 0b00000000,
-			0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-			0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-			0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-			0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-			0b00000000, 0b00000000, 0b00000000, };
+	read_status = RF24_UNKNOWN_ERROR;
 
-	rf24_status_t device_status;
-	rf24_status_t read_status = RF24_UNKNOWN_ERROR;
-
-	while (buffer[0] != my_name)
+	//while (buffer[0] != my_name)
 		while ((device_status = rf24_available(p_dev, NULL)) == RF24_SUCCESS)
 			read_status = rf24_read(p_dev, buffer, p_dev->payload_size);
 
 	if (read_status == RF24_SUCCESS) {
+		printf("lido\r\n");
 
 		get_command_from_buffer(buffer, cmd, uPID);
 

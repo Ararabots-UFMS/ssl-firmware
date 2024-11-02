@@ -56,9 +56,9 @@ void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER){
 	HAL_Delay (2000);
 }
 
-void write_speed_to_motors(TIM_TypeDef *TIMER, inverse_kinematics_t *inverse_kinematics){
-	TIMER->MOTOR1 = map(inverse_kinematics->p_result[0][0], motor_min, motor_max, pwm_min, pwm_max);
-	TIMER->MOTOR2 = map(inverse_kinematics->p_result[1][0], motor_min, motor_max, pwm_min, pwm_max);
-	TIMER->MOTOR3 = map(inverse_kinematics->p_result[2][0], motor_min, motor_max, pwm_min, pwm_max);
-	TIMER->MOTOR4 = map(inverse_kinematics->p_result[3][0], motor_min, motor_max, pwm_min, pwm_max);
+void write_speed_to_motors(TIM_TypeDef *TIMER, float *inverse_kinematics){
+	TIMER->MOTOR1 = map(inverse_kinematics[0], motor_min, motor_max, pwm_min, pwm_max);
+	TIMER->MOTOR2 = map(inverse_kinematics[1], motor_min, motor_max, pwm_min, pwm_max);
+	TIMER->MOTOR3 = map(inverse_kinematics[2], motor_min, motor_max, pwm_min, pwm_max);
+	TIMER->MOTOR4 = map(inverse_kinematics[3], motor_min, motor_max, pwm_min, pwm_max);
 }

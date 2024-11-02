@@ -13,75 +13,31 @@
 
 #define ROBOT_RADIUS 0.09
 
-const float wheel_angles[] = {PI*(5.0/6.0), PI*(5.0/4.0), PI*(7.0/4.0), PI*(1.0/6.0)};
+const float wheel_angles[4] = { PI * (5.0 / 6.0), PI * (5.0 / 4.0), PI
+		* (7.0 / 4.0), PI * (1.0 / 6.0) };
 
-// function to multiply two matrices
-void multiply_matrices(	float **matA, int rowsA, int colsA,
-						float **matB, int rowsB, int colsB,
-						float **result) {
+float jacobian[4][3];
 
-    for (int i = 0; i < rowsA; i++) {
-        for (int j = 0; j < colsB; j++) {
-            result[i][j] = 0;
-            for (int k = 0; k < colsA; k++) {
-                result[i][j] += matA[i][k] * matB[k][j];
-            }
-        }
-    }
-}
+float *result;
 
-void multiply_matrix_scalar(float **result, int rowsR, int colsR,
-							float scalar){
-	for (int i = 0; i < rowsR; i++) {
-		for (int j = 0; j < colsR; j++) {
-			result[i][j] *= scalar;
-		}
-	}
-}
-
-void inverse_kinematics_init(inverse_kinematics_t* inverse_kinematics){
-
-	/////////////////////////////////////////////////////////////////////////////
-
-	inverse_kinematics->p_velocities = (float **)malloc(3 * sizeof(float *));
-
-	for (int i = 0; i < 3; i++)
-		inverse_kinematics->p_velocities[i] = (float *)malloc(1 * sizeof(float));
-
-	inverse_kinematics->p_velocities[0] = inverse_kinematics->vx;
-	inverse_kinematics->p_velocities[1] = inverse_kinematics->vy;
-	inverse_kinematics->p_velocities[2] = inverse_kinematics->vtheta;
-
-	/////////////////////////////////////////////////////////////////////////////
-
-	inverse_kinematics->p_jacobian = (float **)malloc(4 * sizeof(float *));
+float* inverse_kinematics_init() {
 	for (int i = 0; i < 4; i++) {
-		inverse_kinematics->p_jacobian[i] = (float *)malloc(3 * sizeof(float));
+		jacobian[i][0] = cos(wheel_angles[i]);
+		jacobian[i][1] = sin(wheel_angles[i]);
+		jacobian[i][2] = ROBOT_RADIUS;
 	}
 
-	/////////////////////////////////////////////////////////////////////////////
-    inverse_kinematics->p_result = (float **)malloc(4 * sizeof(float *));
-    for (int i = 0; i < 4; i++) {
-    	inverse_kinematics->p_result[i] = (float *)malloc(1 * sizeof(float));
-    }
-	/////////////////////////////////////////////////////////////////////////////
+	result = (float*) malloc(4 * sizeof(float));
+	return (result);
 }
 
-void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics){
+void calculate_wheel_speed(command_t *p_cmd) {
 
-	float jacobian[4][3] = {{cos(wheel_angles[0]), sin(wheel_angles[0]), ROBOT_RADIUS},
-	                        {cos(wheel_angles[1]), sin(wheel_angles[1]), ROBOT_RADIUS},
-	                        {cos(wheel_angles[2]), sin(wheel_angles[2]), ROBOT_RADIUS},
-							{cos(wheel_angles[3]), sin(wheel_angles[3]), ROBOT_RADIUS}};
-
-	///////////////////////////////////////////////////////////
 	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
-			inverse_kinematics->p_jacobian[i][j] = jacobian[i][j];
-		}
+		result[i] = 0;
+		result[i] = result[i] + jacobian[i][0] * p_cmd->vx;
+		result[i] = result[i] + jacobian[i][1] * p_cmd->vy;
+		result[i] = result[i] + jacobian[i][2] * p_cmd->vtheta;
+		result[i] = 1 / WHEEL_RADIUS * result[i];
 	}
-
-	///////////////////////////////////////////////////////////
-	multiply_matrices(inverse_kinematics->p_jacobian, 4, 3, inverse_kinematics->p_velocities, 3, 1, inverse_kinematics->p_result);
-	multiply_matrix_scalar(inverse_kinematics->p_result, 4, 1, 1.0/WHEEL_RADIUS);
 }

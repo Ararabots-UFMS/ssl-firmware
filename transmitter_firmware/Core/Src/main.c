@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <string.h>
+//#include <string.h>
 
 #include "rf24.h"
 #include "linked_list.h"
@@ -139,9 +139,7 @@ int main(void) {
 
 	rf24_open_writing_pipe(p_dev, address);
 
-	printf("aqui\r\n");
-
-	// Allocate memory for the matrix
+	printf("Waiting for robot count...\r\n");
 
 	while (robot_count == 0) {
 		HAL_UART_Receive(&SERIAL_UART, &robot_count, 1, 100);
@@ -165,6 +163,8 @@ int main(void) {
 
 	HAL_StatusTypeDef read_status;
 
+	printf("Starting loop\r\n");
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -185,7 +185,7 @@ int main(void) {
 					robots[0][i] = rx_buffer[i];
 				}
 				rf24_write(p_dev, robots[0], PAYLOAD_SIZE,
-				true);
+				false);
 
 			} else if (robot_count == 2) {
 				for (int i = 0; i < 32; i++) {
@@ -193,9 +193,9 @@ int main(void) {
 					robots[1][i] = rx_buffer[i + 32];
 				}
 				rf24_write(p_dev, robots[0], PAYLOAD_SIZE,
-				true);
+				false);
 				rf24_write(p_dev, robots[1], PAYLOAD_SIZE,
-				true);
+				false);
 
 			} else if (robot_count == 3) {
 				for (int i = 0; i < 32; i++) {
@@ -204,11 +204,11 @@ int main(void) {
 					robots[2][i] = rx_buffer[i + 64];
 				}
 				rf24_write(p_dev, robots[0], PAYLOAD_SIZE,
-				true);
+				false);
 				rf24_write(p_dev, robots[1], PAYLOAD_SIZE,
-				true);
+				false);
 				rf24_write(p_dev, robots[2], PAYLOAD_SIZE,
-				true);
+				false);
 			}
 
 		} else {
@@ -217,7 +217,7 @@ int main(void) {
 		current_time = HAL_GetTick();
 		elapsed_time = current_time - last_time;
 		last_time = current_time;
-		printf("%lu\r\n", elapsed_time);
+		printf("%lu ms\r\n", elapsed_time);
 	}
 	/* USER CODE END 3 */
 }

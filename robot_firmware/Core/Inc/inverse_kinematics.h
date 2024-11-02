@@ -15,6 +15,8 @@
  *      Author: allan
  */
 
+#include "main.h"
+
 
 typedef struct inverse_kinematics {
 	float *vx;
@@ -27,9 +29,9 @@ typedef struct inverse_kinematics {
 
 #define PI 3.14159265358979323846
 
-void inverse_kinematics_init(inverse_kinematics_t* inverse_kinematics);
+float* inverse_kinematics_init();
 
-void calculate_wheel_speed(inverse_kinematics_t* inverse_kinematics);
+void calculate_wheel_speed(command_t *p_cmd);
 
 
 #endif /* INC_INVERSE_KINEMATICS_H_ */

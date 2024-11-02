@@ -59,8 +59,6 @@
 #define HTIM htim1
 
 #define MOTOR_TIMER TIM1
-
-#define ADDRESSES {{0xE7, 0xE7, 0xE7, 0xE7, 0xE8}, {0xC2, 0xC2, 0xC2, 0xC2, 0xC1}}
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -79,8 +77,6 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 #ifdef VERBOSE
 int __io_putchar(int ch);
-
-int __io_getchar(void);
 #endif
 
 void calculate_IMU_error();
@@ -97,16 +93,10 @@ rf24_dev_t *p_radio_dev = &radio_device; /* Pointer to module instance */
 
 uint8_t address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
 
-inverse_kinematics_t inverse_kinematics;
-inverse_kinematics_t *p_inverse_kinematics = &inverse_kinematics;
+float* inverse_kinematics_result;
 
 MPU6050_t MPU6050;
-float AccErrorX;
-float AccErrorY;
-float AccErrorZ;
 float GyroErrorX;
-float GyroErrorY;
-float GyroErrorZ;
 
 PID_TypeDef TPIDVTheta;
 float PIDOutVtheta;
@@ -163,7 +153,6 @@ int main(void) {
 	/* RADIO CONFIGURATION AND INITIALIZATION */
 
 	/* Get default configuration */
-	rf24_get_default_config(p_radio_dev);
 	p_radio_dev->platform_setup.spi_timeout = 1000;
 	p_radio_dev->payload_size = PAYLOAD_SIZE;
 	p_radio_dev->addr_width = 5;
@@ -204,13 +193,11 @@ int main(void) {
 		device_status = rf24_start_listening(p_radio_dev);
 	}
 
-#ifdef VERBOSE
 	if (device_status != RF24_SUCCESS) {
 		printf("Error during nrf24 setup\r\n");
 	}
-#endif
 	printf("Radio initialized\r\n");
-	/////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////// // @suppress("Line comments")
 
 	/////////////////////////////////////////////////////////////////////////////
 	printf("Initializing MPU6050\r\n");
@@ -226,7 +213,7 @@ int main(void) {
 	/////////////////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////////////////
-	printf("Creating PID control system");
+	printf("Creating PID control system\r\n");
 
 	//TODO: Calibrate pid values
 
@@ -238,13 +225,13 @@ int main(void) {
 	PID_SetSampleTime(&TPIDVTheta, 100);
 	PID_SetOutputLimits(&TPIDVTheta, -50, 50);
 
-	printf("PID control system initialized");
+	printf("PID control system initialized\r\n");
 	/////////////////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////////////////
-	printf("Initializing inverse kinematics");
-	inverse_kinematics_init(p_inverse_kinematics);
-	printf("Inverse kinematics initialized");
+	printf("Initializing inverse kinematics\r\n");
+	inverse_kinematics_result = inverse_kinematics_init();
+	printf("Inverse kinematics initialized\r\n");
 
 	//Start timer interrupt for reading radio values
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -257,6 +244,8 @@ int main(void) {
 	uint32_t previousTime;
 	uint32_t elapsedTime;
 
+	HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
+
 	p_cmd->vx = 1;
 	p_cmd->vy = 1;
 	p_cmd->kik_sig = 1;
@@ -265,18 +254,10 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		/*		LED FOR DEBUGGING		*/
-		HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
-
-		/*		READ DATA FROM MPU6050 and treat it		*/
-
-		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
 
 		/*		READ KICK SIGNAL AND INFRARED FOR KICKCING		*/
 		if (p_cmd->kik_sig == 1) {
 			int ir = HAL_GPIO_ReadPin(INFRARED_GPIO_Port, INFRARED_Pin);
-
-			//printf(">infrared:%d\r\n", ir);
 
 			if (ir == 0) {
 				HAL_GPIO_WritePin(KICKER_GPIO_Port, KICKER_Pin, GPIO_PIN_SET);
@@ -285,21 +266,23 @@ int main(void) {
 			}
 		}
 
+		/*		READ DATA FROM MPU6050 and treat it		*/
+		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
+
 		/*		Compute compensated values for Vtheta		*/
 		PID_Compute(&TPIDVTheta);
 
 		/*		Get wheel speed from inverse kinematics		*/
-		calculate_wheel_speed(p_inverse_kinematics);
+		calculate_wheel_speed(p_cmd);
 
 		/*		Write speed to motors		*/
-		write_speed_to_motors(MOTOR_TIMER, p_inverse_kinematics);
+		write_speed_to_motors(MOTOR_TIMER, inverse_kinematics_result);
 
 		previousTime = currentTime;
 		currentTime = HAL_GetTick();
 		elapsedTime = (currentTime - previousTime);
 
 		printf(">elapsed_time:%lu\r\n", elapsedTime);
-		HAL_Delay(50);
 	}
 	/* USER CODE END 3 */
 }
@@ -358,27 +341,13 @@ void calculate_IMU_error(MPU6050_t MPU6050) {
 	int error_iterations = 10000;
 
 	for (int c = 0; c < error_iterations; c++) {
-		MPU6050_Read_All(&hi2c1, &MPU6050);
-
-		// Sum all readings
-		AccErrorX = AccErrorX + MPU6050.Ax;
-		AccErrorY = AccErrorY + MPU6050.Ay;
-		AccErrorZ = AccErrorZ + (MPU6050.Az - 1);
+		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
 
 		// Sum all readings
 		GyroErrorX = GyroErrorX + MPU6050.Gx;
-		GyroErrorY = GyroErrorY + MPU6050.Gy;
-		GyroErrorZ = GyroErrorZ + MPU6050.Gz;
 	}
 	//Divide the sum by 200 to get the error value
-	AccErrorX = AccErrorX / error_iterations;
-	AccErrorY = AccErrorY / error_iterations;
-	AccErrorZ = AccErrorZ / error_iterations;
-	//Divide the sum by 200 to get the error value
 	GyroErrorX = GyroErrorX / error_iterations;
-	GyroErrorY = GyroErrorY / error_iterations;
-	GyroErrorZ = GyroErrorZ / error_iterations;
-	// Print the error values on the Serial Monitor
 }
 
 /* USER CODE END 4 */
