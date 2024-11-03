@@ -112,10 +112,10 @@ int main(void)
 
   printf("Initializing\r\n");
   HAL_Delay(500);
-  while (MPU6050_Init(&hi2c1) == 1) {
-  }
+  //while (MPU6050_Init(&hi2c1) == 1) {
+  //}
   printf("calculating error\r\n");
-  calculate_IMU_error(MPU6050);
+  //calculate_IMU_error(MPU6050);
 
   rf24_dev_t device; /* Module instance */
   rf24_dev_t* p_dev = &device; /* Pointer to module instance */
@@ -168,8 +168,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	MPU6050_Read_All(&hi2c1, &MPU6050);
-	uint8_to_float.value = MPU6050.Gx;
+	//MPU6050_Read_All(&hi2c1, &MPU6050);
+	uint8_to_float.value = 1.5;
 
 	buffer[0] = 1;
 	buffer[1] = uint8_to_float.ints[3];

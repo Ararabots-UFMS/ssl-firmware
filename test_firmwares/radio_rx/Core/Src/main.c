@@ -154,6 +154,8 @@ int main(void)
 
 	  uint8_t buffer[15] = {"nada\r\n"};
 
+	  printf("loop\r\n");
+
 	  if ((rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
 		  printf("IF\r\n");
 	      while ((rf24_available(p_dev, NULL)) == RF24_SUCCESS) {
