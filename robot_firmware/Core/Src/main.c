@@ -91,8 +91,8 @@ command_t *p_cmd = &cmd;
 rf24_dev_t radio_device;
 rf24_dev_t *p_radio_dev = &radio_device; /* Pointer to module instance */
 
-uint8_t my_address[5] = {0xB9, 0xB7, 0xE7, 0xE9, 0xC2};
-uint8_t transmitter_address[5] = {0xB9, 0xB7, 0xE7, 0xE9, 0xC3};
+uint8_t my_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC2 };
+uint8_t transmitter_address[5] = { 0xB9, 0xB7, 0xE7, 0xE9, 0xC3 };
 
 float *inverse_kinematics_result;
 
@@ -101,43 +101,47 @@ float GyroErrorX;
 
 PID_TypeDef TPIDVTheta;
 float PIDOutVtheta;
+
+uint8_t canKick = 1; // True
+
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
 
-  /* USER CODE BEGIN 1 */
+	/* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_SPI1_Init();
-  MX_USART3_UART_Init();
-  MX_TIM1_Init();
-  MX_TIM2_Init();
-  MX_I2C1_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_SPI1_Init();
+	MX_USART3_UART_Init();
+	MX_TIM1_Init();
+	MX_TIM2_Init();
+	MX_I2C1_Init();
+	MX_TIM3_Init();
+	MX_TIM4_Init();
+	/* USER CODE BEGIN 2 */
 
 	/////////////////////////////////////////////////////////////////////////////
 	printf("Initializing motors\r\n");
@@ -161,8 +165,7 @@ int main(void)
 	p_radio_dev->datarate = RF24_1MBPS;
 	p_radio_dev->channel = 76U;
 
-	for (uint8_t i = 0; i < RF24_ADDRESS_MAX_SIZE; i++)
-	{
+	for (uint8_t i = 0; i < RF24_ADDRESS_MAX_SIZE; i++) {
 		p_radio_dev->pipe0_reading_address[i] = 0;
 	}
 
@@ -186,23 +189,20 @@ int main(void)
 
 	rf24_status_t device_status = RF24_SUCCESS; /* Variable to receive the statuses returned by the functions */
 
-	if (device_status == RF24_SUCCESS)
-	{
-		device_status = rf24_open_writing_pipe(p_radio_dev, transmitter_address);
+	if (device_status == RF24_SUCCESS) {
+		device_status = rf24_open_writing_pipe(p_radio_dev,
+				transmitter_address);
 	}
 
-	if (device_status == RF24_SUCCESS)
-	{
+	if (device_status == RF24_SUCCESS) {
 		device_status = rf24_open_reading_pipe(p_radio_dev, 1, my_address);
 	}
 
-	if (device_status == RF24_SUCCESS)
-	{
+	if (device_status == RF24_SUCCESS) {
 		device_status = rf24_start_listening(p_radio_dev);
 	}
 
-	if (device_status != RF24_SUCCESS)
-	{
+	if (device_status != RF24_SUCCESS) {
 		printf("Error during nrf24 setup\r\n");
 	}
 	printf("Radio initialized\r\n");
@@ -229,7 +229,7 @@ int main(void)
 
 	/*Angular velocity*/
 	PID(&TPIDVTheta, &(MPU6050.Gz), &PIDOutVtheta, &(cmd.vtheta), 2, 5, 1,
-		_PID_P_ON_E, _PID_CD_DIRECT);
+			_PID_P_ON_E, _PID_CD_DIRECT);
 
 	PID_SetMode(&TPIDVTheta, _PID_MODE_AUTOMATIC);
 	PID_SetSampleTime(&TPIDVTheta, 100);
@@ -246,36 +246,31 @@ int main(void)
 	// Start timer interrupt for reading radio values
 	HAL_TIM_Base_Start_IT(&htim2);
 
-  /* USER CODE END 2 */
+	/* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-	// uint32_t currentTime = HAL_GetTick();
-	// uint32_t previousTime;
-	// uint32_t elapsedTime;
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
 
 	HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 
-	p_cmd->vx = 1;
-	p_cmd->vy = 1;
+	p_cmd->vx = 0.0;
+	p_cmd->vy = 0.0;
 	p_cmd->kik_sig = 1;
 
-	while (1)
-	{
-    /* USER CODE END WHILE */
+	while (1) {
+		/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+		/* USER CODE BEGIN 3 */
 
 		/*		READ KICK SIGNAL AND INFRARED FOR KICKCING		*/
-		if (p_cmd->kik_sig == 1)
-		{
-			int ir = HAL_GPIO_ReadPin(INFRARED_GPIO_Port, INFRARED_Pin);
 
-			if (ir == 0)
-			{
+		p_cmd->kik_sig = 1;
+		if (p_cmd->kik_sig == 1 && canKick) {
+			if (HAL_GPIO_ReadPin(INFRARED_GPIO_Port, INFRARED_Pin) == 0) {
+				canKick = 0; // False
+				HAL_TIM_Base_Start_IT(&htim4);
+				HAL_TIM_Base_Start_IT(&htim3);
 				HAL_GPIO_WritePin(KICKER_GPIO_Port, KICKER_Pin, GPIO_PIN_SET);
-				HAL_Delay(3);
-				HAL_GPIO_WritePin(KICKER_GPIO_Port, KICKER_Pin, GPIO_PIN_RESET);
 			}
 		}
 
@@ -291,102 +286,100 @@ int main(void)
 		/*		Write speed to motors		*/
 		write_speed_to_motors(MOTOR_TIMER, inverse_kinematics_result);
 
-		// previousTime = currentTime;
-		// currentTime = HAL_GetTick();
-		// elapsedTime = (currentTime - previousTime);
-
-		// printf(">elapsed_time:%lu\r\n", elapsedTime);
 	}
-  /* USER CODE END 3 */
+	/* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL8;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL8;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		Error_Handler();
+	}
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+		Error_Handler();
+	}
 }
 
 /* USER CODE BEGIN 4 */
 #ifdef VERBOSE
-int __io_putchar(int ch)
-{
-	HAL_UART_Transmit(&SERIAL_UART, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+int __io_putchar(int ch) {
+	HAL_UART_Transmit(&SERIAL_UART, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
 	return (ch);
 }
 #endif
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM2)
-	{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	/*
+	 previousTime = currentTime;
+	 currentTime = HAL_GetTick();
+	 elapsedTime = (currentTime - previousTime);
+
+	 printf(">elapsed_time:%lu\r\n", elapsedTime);
+	 * */
+	if (htim->Instance == TIM3) {
+		HAL_GPIO_WritePin(KICKER_GPIO_Port, KICKER_Pin, GPIO_PIN_RESET);
+		HAL_TIM_Base_Stop_IT(htim);
+	} else if (htim->Instance == TIM4) {
+		canKick = 1; //True
+		HAL_TIM_Base_Stop_IT(htim);
+	} else if (htim->Instance == TIM2) {
 		radio_read_and_update(p_radio_dev, p_cmd, &TPIDVTheta);
 	}
 }
 
-void calculate_IMU_error(MPU6050_t MPU6050)
-{
+void calculate_IMU_error(MPU6050_t MPU6050) {
 	int error_iterations = 10000;
 
-	for (int c = 0; c < error_iterations; c++)
-	{
+	for (int c = 0; c < error_iterations; c++) {
 		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
 
 		// Sum all readings
 		GyroErrorX = GyroErrorX + MPU6050.Gx;
 	}
-	// Divide the sum by 200 to get the error value
+// Divide the sum by 200 to get the error value
 	GyroErrorX = GyroErrorX / error_iterations;
 }
 
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-	while (1)
-	{
+	while (1) {
 		printf("Erro kkkkkkkkk\r\n");
 	}
-  /* USER CODE END Error_Handler_Debug */
+	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
