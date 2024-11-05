@@ -31,7 +31,7 @@ typedef struct inverse_kinematics {
 
 float* inverse_kinematics_init();
 
-void calculate_wheel_speed(command_t *p_cmd);
+void calculate_wheel_speed(command_t *p_cmd, float PIDOut);
 
 
 #endif /* INC_INVERSE_KINEMATICS_H_ */

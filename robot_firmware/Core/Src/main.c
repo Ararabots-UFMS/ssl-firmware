@@ -223,7 +223,6 @@ int main(void) {
 
 	/////////////////////////////////////////////////////////////////////////////
 	printf("Creating PID control system\r\n");
-	printf("Creating PID control system\r\n");
 
 	// TODO: Calibrate pid values
 
@@ -281,7 +280,7 @@ int main(void) {
 		PID_Compute(&TPIDVTheta);
 
 		/*		Get wheel speed from inverse kinematics		*/
-		calculate_wheel_speed(p_cmd);
+		calculate_wheel_speed(p_cmd, PIDOutVtheta);
 
 		/*		Write speed to motors		*/
 		write_speed_to_motors(MOTOR_TIMER, inverse_kinematics_result);

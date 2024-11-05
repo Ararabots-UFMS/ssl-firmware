@@ -31,13 +31,13 @@ float* inverse_kinematics_init() {
 	return (result);
 }
 
-void calculate_wheel_speed(command_t *p_cmd) {
+void calculate_wheel_speed(command_t *p_cmd, float PIDOut) {
 
 	for (int i = 0; i < 4; i++) {
 		result[i] = 0;
 		result[i] = result[i] + jacobian[i][0] * p_cmd->vx;
 		result[i] = result[i] + jacobian[i][1] * p_cmd->vy;
-		result[i] = result[i] + jacobian[i][2] * p_cmd->vtheta;
+		result[i] = result[i] + jacobian[i][2] * PIDOut;
 		result[i] = 1 / WHEEL_RADIUS * result[i];
 	}
 }
