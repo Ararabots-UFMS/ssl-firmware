@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define Calibrate 1
+#define Calibrate
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -40,9 +40,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
-
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -52,32 +49,13 @@ TIM_HandleTypeDef htim1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_TIM1_Init(void);
-static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/*uint16_t ADC_Data=0;
-int ADC_Converted=0;
-
-long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
-  return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
-}*/
-
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-//{
-	//ADC_Converted = map(ADC_Data, 0, 4095, 50, 120); //120 maior velocidade
-
-	//TIM1->CCR1 = ADC_Converted;
-	//TIM1->CCR2 = ADC_Converted;
-	//TIM1->CCR3 = ADC_Converted;
-	//TIM1->CCR4 = ADC_Converted;
-//}
 
 /* USER CODE END 0 */
 
@@ -110,9 +88,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM1_Init();
-  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -120,32 +96,36 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  //HAL_Delay (5000);  // wait for 1 beep
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
   // HAL_GPIO_WritePin(INVERSE_GPIO_Port, INVERSE_Pin, GPIO_PIN_RESET);
 
-  #if Calibrate
+  #ifdef Calibrate
     TIM1->CCR1 = 100;  // Set the maximum pulse (2ms)
-    HAL_Delay (2000);  // wait for 1 beep
-    TIM1->CCR1 = 50;   // Set the minimum Pulse (1ms)
-    HAL_Delay (1000);  // wait for 2 beeps
-    TIM1->CCR1 = 0;    // reset to 0, so it can be controlled via ADC
     TIM1->CCR2 = 100;  // Set the maximum pulse (2ms)
-    HAL_Delay (2000);  // wait for 1 beep
-    TIM1->CCR2 = 50;   // Set the minimum Pulse (1ms)
-    HAL_Delay (1000);  // wait for 2 beeps
-    TIM1->CCR2 = 0;    // reset to 0, so it can be controlled via ADC
     TIM1->CCR3 = 100;  // Set the maximum pulse (2ms)
-    HAL_Delay (2000);  // wait for 1 beep
-    TIM1->CCR3 = 50;   // Set the minimum Pulse (1ms)
-    HAL_Delay (1000);  // wait for 2 beeps
-    TIM1->CCR3 = 0;    // reset to 0, so it can be controlled via ADC
     TIM1->CCR4 = 100;  // Set the maximum pulse (2ms)
-    HAL_Delay (2000);  // wait for 1 beep
+    HAL_Delay (4005);  // wait for 1 beep
+    TIM1->CCR1 = 50;   // Set the minimum Pulse (1ms)
+    TIM1->CCR2 = 50;   // Set the minimum Pulse (1ms)
+    TIM1->CCR3 = 50;   // Set the minimum Pulse (1ms)
     TIM1->CCR4 = 50;   // Set the minimum Pulse (1ms)
-    HAL_Delay (1000);  // wait for 2 beeps
+    HAL_Delay (2005);  // wait for 2 beeps
+    TIM1->CCR1 = 0;    // reset to 0, so it can be controlled via ADC
+    TIM1->CCR2 = 0;    // reset to 0, so it can be controlled via ADC
+    TIM1->CCR3 = 0;    // reset to 0, so it can be controlled via ADC
     TIM1->CCR4 = 0;    // reset to 0, so it can be controlled via ADC
-  #endif
 
-   //HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&ADC_Data, 1);
+
+    /*
+    HAL_Delay (4000);  // wait for 1 beep
+    HAL_Delay (2000);  // wait for 2 beeps
+    HAL_Delay (4000);  // wait for 1 beep
+    HAL_Delay (2000);  // wait for 2 beeps
+    HAL_Delay (4000);  // wait for 1 beep
+    HAL_Delay (2000);  // wait for 2 beeps
+    */
+  #endif
 
    /*TIM1->CCR1 = 75;
    TIM1->CCR2 = 75;
@@ -163,7 +143,34 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  	HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+	  for(int i=0; i<10; i+=2){
+		  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		  	TIM1->CCR1 = 50+i;
+			TIM1->CCR2 = 50+i;
+			TIM1->CCR3 = 50+i;
+			TIM1->CCR4 = 50+i;
+
+			HAL_Delay(3000);
+	  }
+
+	  	/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+	  	HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_RESET);
+
+		TIM1->CCR1 = 60;
+		TIM1->CCR2 = 60;
+		TIM1->CCR3 = 60;
+		TIM1->CCR4 = 60;
+
+		HAL_Delay(3000);
+
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
@@ -173,14 +180,86 @@ int main(void)
 		TIM1->CCR3 = 60;
 		TIM1->CCR4 = 60;
 
-		HAL_Delay(5000);
+		HAL_Delay(3000);*/
 
-		TIM1->CCR1 = 50;
+		/*TIM1->CCR1 = 50;
 		TIM1->CCR2 = 50;
 		TIM1->CCR3 = 50;
 		TIM1->CCR4 = 50;
 
-		HAL_Delay(2000);
+		HAL_Delay(2000);*/
+
+		/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_RESET);
+
+		TIM1->CCR1 = 70;
+		TIM1->CCR2 = 70;
+		TIM1->CCR3 = 70;
+		TIM1->CCR4 = 70;
+
+		HAL_Delay(3000);
+
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		TIM1->CCR1 = 70;
+		TIM1->CCR2 = 70;
+		TIM1->CCR3 = 70;
+		TIM1->CCR4 = 70;
+
+		HAL_Delay(3000);
+
+		/*TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);*/
+
+		/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_RESET);
+
+		TIM1->CCR1 = 80;
+		TIM1->CCR2 = 80;
+		TIM1->CCR3 = 80;
+		TIM1->CCR4 = 80;
+
+		HAL_Delay(3000);
+
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		TIM1->CCR1 = 80;
+		TIM1->CCR2 = 80;
+		TIM1->CCR3 = 80;
+		TIM1->CCR4 = 80;
+
+		HAL_Delay(3000);
+
+		/*TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);*/
+
+		/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
@@ -192,35 +271,84 @@ int main(void)
 		TIM1->CCR3 = 90;
 		TIM1->CCR4 = 90;
 
-		HAL_Delay(5000);
+		HAL_Delay(3000);
 
-		TIM1->CCR1 = 50;
-		TIM1->CCR2 = 50;
-		TIM1->CCR3 = 50;
-		TIM1->CCR4 = 50;
-
-		HAL_Delay(5);
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
 
-		HAL_Delay(5000);
+		TIM1->CCR1 = 90;
+		TIM1->CCR2 = 90;
+		TIM1->CCR3 = 90;
+		TIM1->CCR4 = 90;
 
-		TIM1->CCR1 = 60;
-		TIM1->CCR2 = 60;
-		TIM1->CCR3 = 60;
-		TIM1->CCR4 = 60;
+		HAL_Delay(3000);
 
-		HAL_Delay(5000);
-
-		TIM1->CCR1 = 50;
+		/*TIM1->CCR1 = 50;
 		TIM1->CCR2 = 50;
 		TIM1->CCR3 = 50;
 		TIM1->CCR4 = 50;
 
-		HAL_Delay(2000);
+		HAL_Delay(2000);*/
+
+		/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_RESET);
+
+		TIM1->CCR1 = 99;
+		TIM1->CCR2 = 99;
+		TIM1->CCR3 = 99;
+		TIM1->CCR4 = 99;
+
+		HAL_Delay(3000);
+
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		TIM1->CCR1 = 99;
+		TIM1->CCR2 = 99;
+		TIM1->CCR3 = 99;
+		TIM1->CCR4 = 99;
+
+		HAL_Delay(3000);
+
+		/*TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);*/
+
+		/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE3_GPIO_Port, INVERSE3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(INVERSE4_GPIO_Port, INVERSE4_Pin, GPIO_PIN_SET);
+
+		TIM1->CCR1 = 100;
+		TIM1->CCR2 = 100;
+		TIM1->CCR3 = 100;
+		TIM1->CCR4 = 100;
+
+		HAL_Delay(5000);
+
+		/*TIM1->CCR1 = 50;
+		TIM1->CCR2 = 50;
+		TIM1->CCR3 = 50;
+		TIM1->CCR4 = 50;
+
+		HAL_Delay(2000);*/
 
   }
   /* USER CODE END 3 */
@@ -234,7 +362,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -264,59 +391,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_ADC1_Init(void)
-{
-
-  /* USER CODE BEGIN ADC1_Init 0 */
-
-  /* USER CODE END ADC1_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC1_Init 1 */
-
-  /* USER CODE END ADC1_Init 1 */
-
-  /** Common config
-  */
-  hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN ADC1_Init 2 */
-
-  /* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
@@ -397,22 +471,6 @@ static void MX_TIM1_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -424,12 +482,23 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, INVERSE1_Pin|INVERSE2_Pin|INVERSE3_Pin|INVERSE4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : INVERSE1_Pin INVERSE2_Pin INVERSE3_Pin INVERSE4_Pin */
   GPIO_InitStruct.Pin = INVERSE1_Pin|INVERSE2_Pin|INVERSE3_Pin|INVERSE4_Pin;

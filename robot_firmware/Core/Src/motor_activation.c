@@ -29,31 +29,20 @@ void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER){
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
 	TIMER->MOTOR1 = 100;  // Set the maximum pulse (2ms)
-	HAL_Delay (2000);  // wait for 1 beep
-	TIMER->MOTOR1 = 50;   // Set the minimum Pulse (1ms)
-	HAL_Delay (1000);  // wait for 2 beeps
-	TIMER->MOTOR1 = 0;    // reset to 0, so it can be controlled via ADC
 	TIMER->MOTOR2 = 100;  // Set the maximum pulse (2ms)
-	HAL_Delay (2000);  // wait for 1 beep
-	TIMER->MOTOR2 = 50;   // Set the minimum Pulse (1ms)
-	HAL_Delay (1000);  // wait for 2 beeps
-	TIMER->MOTOR2 = 0;    // reset to 0, so it can be controlled via ADC
 	TIMER->MOTOR3 = 100;  // Set the maximum pulse (2ms)
-	HAL_Delay (2000);  // wait for 1 beep
-	TIMER->MOTOR3 = 50;   // Set the minimum Pulse (1ms)
-	HAL_Delay (1000);  // wait for 2 beeps
-	TIMER->MOTOR3 = 0;    // reset to 0, so it can be controlled via ADC
 	TIMER->MOTOR4 = 100;  // Set the maximum pulse (2ms)
-	HAL_Delay (2000);  // wait for 1 beep
+	HAL_Delay (4005);  // wait for 1 beep
+	TIMER->MOTOR1 = 50;   // Set the minimum Pulse (1ms)
+	TIMER->MOTOR2 = 50;   // Set the minimum Pulse (1ms)
+	TIMER->MOTOR3 = 50;   // Set the minimum Pulse (1ms)
 	TIMER->MOTOR4 = 50;   // Set the minimum Pulse (1ms)
-	HAL_Delay (1000);  // wait for 2 beeps
+	HAL_Delay (2005);  // wait for 2 beeps
+	TIMER->MOTOR1 = 0;    // reset to 0, so it can be controlled via ADC
+	TIMER->MOTOR2 = 0;    // reset to 0, so it can be controlled via ADC
+	TIMER->MOTOR3 = 0;    // reset to 0, so it can be controlled via ADC
 	TIMER->MOTOR4 = 0;    // reset to 0, so it can be controlled via ADC
 
-	TIMER->MOTOR1 = 75;
-	TIMER->MOTOR2 = 75;
-	TIMER->MOTOR3 = 75;
-	TIMER->MOTOR4 = 75;
-	HAL_Delay (2000);
 }
 
 void write_speed_to_motors(TIM_TypeDef *TIMER, float *inverse_kinematics){
