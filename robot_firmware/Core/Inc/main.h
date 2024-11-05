@@ -66,8 +66,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BUILTIN_LED_Pin GPIO_PIN_13
 #define BUILTIN_LED_GPIO_Port GPIOC
-#define KICKER_Pin GPIO_PIN_0
-#define KICKER_GPIO_Port GPIOA
 #define INFRARED_Pin GPIO_PIN_1
 #define INFRARED_GPIO_Port GPIOA
 #define RADIO_IRQ_Pin GPIO_PIN_2
@@ -82,6 +80,20 @@ void Error_Handler(void);
 #define RADIO_MISO_GPIO_Port GPIOA
 #define RADIO_MOSI_Pin GPIO_PIN_7
 #define RADIO_MOSI_GPIO_Port GPIOA
+#define KICKER_Pin GPIO_PIN_12
+#define KICKER_GPIO_Port GPIOB
+#define RELAY1_Pin GPIO_PIN_3
+#define RELAY1_GPIO_Port GPIOB
+#define RELAY2_Pin GPIO_PIN_4
+#define RELAY2_GPIO_Port GPIOB
+#define RELAY3_Pin GPIO_PIN_5
+#define RELAY3_GPIO_Port GPIOB
+#define MPU_SCL_Pin GPIO_PIN_6
+#define MPU_SCL_GPIO_Port GPIOB
+#define MPU_SDA_Pin GPIO_PIN_7
+#define MPU_SDA_GPIO_Port GPIOB
+#define RELAY4_Pin GPIO_PIN_9
+#define RELAY4_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

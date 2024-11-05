@@ -3,14 +3,14 @@
 
 freq_desejada = float(input("Digite a frequência desejada: "))
 
-period_desejado = 1/freq_desejada
+period_desejado = 1 / freq_desejada
 
 prescaler = int(input("Digite o valor do prescaler: "))
 
 freq = 64000000 / prescaler
 
-period = 1/freq
+period = 1 / freq
 
-counter_period = period_desejado/period
+counter_period = period_desejado / period
 
 print("Counter Period: ", round(counter_period))
