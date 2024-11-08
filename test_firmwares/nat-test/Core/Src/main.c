@@ -143,7 +143,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  for(int i=0; i<10; i+=2){
+	  /*for(int i=0; i<10; i+=2){
 		  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 		  	TIM1->CCR1 = 50+i;
@@ -152,9 +152,9 @@ int main(void)
 			TIM1->CCR4 = 50+i;
 
 			HAL_Delay(3000);
-	  }
+	  }*/
 
-	  	/*HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 	  	HAL_GPIO_WritePin(INVERSE1_GPIO_Port, INVERSE1_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(INVERSE2_GPIO_Port, INVERSE2_Pin, GPIO_PIN_RESET);
@@ -180,7 +180,7 @@ int main(void)
 		TIM1->CCR3 = 60;
 		TIM1->CCR4 = 60;
 
-		HAL_Delay(3000);*/
+		HAL_Delay(3000);
 
 		/*TIM1->CCR1 = 50;
 		TIM1->CCR2 = 50;

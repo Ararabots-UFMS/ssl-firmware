@@ -8,6 +8,7 @@
 #include "tim.h"
 #include "motor_activation.h"
 #include "main.h"
+#include <stdio.h>
 
 #define MOTOR1 CCR1
 #define MOTOR2 CCR2
@@ -19,24 +20,23 @@
 #define pwm_min 58.0
 #define pwm_max 100.0
 
-GPIO_TypeDef *ports[4] = {RELAY1_GPIO_Port, RELAY2_GPIO_Port, RELAY3_GPIO_Port,
-						  RELAY4_GPIO_Port};
-uint16_t pins[4] = {RELAY1_Pin, RELAY2_Pin, RELAY3_Pin, RELAY4_Pin};
+GPIO_TypeDef *ports[4] = { RELAY1_GPIO_Port, RELAY2_GPIO_Port, RELAY3_GPIO_Port,
+RELAY4_GPIO_Port };
+uint16_t pins[4] = { RELAY1_Pin, RELAY2_Pin, RELAY3_Pin, RELAY4_Pin };
 
-float last_values[4] = {0, 0, 0, 0};
-int8_t last_direction[4] = {1, 1, 1, 1};
+float last_values[4] = { 0, 0, 0, 0 };
+int8_t last_direction[4] = { 1, 1, 1, 1 };
 
-float map(float in_value)
-{
+float map(float in_value) {
 	if (in_value <= 0)
 		return 0;
 	else if (in_value > motor_max)
 		return motor_max;
-	return (in_value - motor_min) * (pwm_max - pwm_min + 1) / (motor_max - motor_min + 1) + pwm_min;
+	return (in_value - motor_min) * (pwm_max - pwm_min + 1)
+			/ (motor_max - motor_min + 1) + pwm_min;
 }
 
-void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER)
-{
+void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER) {
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -59,48 +59,37 @@ void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER)
 }
 
 uint8_t is_safe(float current_value, uint8_t current_direction,
-				uint8_t motor_idex)
-{
-	if ((last_values[motor_idex] > 60.0 && current_value > 60.0) && (last_direction[0] != current_direction))
-	{
+		uint8_t motor_idex) {
+	if ((last_values[motor_idex] > 60.0 && current_value > 60.0)
+			&& (last_direction[0] != current_direction)) {
 		return 0;
 	}
 	return 1;
 }
 
-void write_speed_to_motors(TIM_TypeDef *TIMER, float *inverse_kinematics)
-{
+void write_speed_to_motors(TIM_TypeDef *TIMER, float *inverse_kinematics) {
 
 	float wheel_speed;
 	int8_t current_orientation;
 
-	for (int i = 0; i < 4; i++)
-	{
+	for (int i = 0; i < 4; i++) {
 
-		if (inverse_kinematics[i] < 0)
-		{
+		if (inverse_kinematics[i] < 0) {
 			current_orientation = -1;
 			inverse_kinematics[i] *= -1;
-		}
-		else
+		} else
 			current_orientation = 1;
 
 		wheel_speed = map(inverse_kinematics[i]);
 
-		if (is_safe(wheel_speed, current_orientation, i))
-		{
-			if (current_orientation < 0)
-			{
+		if (is_safe(wheel_speed, current_orientation, i)) {
+			if (current_orientation < 0) {
 				HAL_GPIO_WritePin(ports[i], pins[i], GPIO_PIN_SET);
-			}
-			else
-			{
+			} else {
 				HAL_GPIO_WritePin(ports[i], pins[i], GPIO_PIN_RESET);
 			}
 			last_values[i] = wheel_speed;
-		}
-		else
-		{
+		} else {
 			current_orientation = 0;
 			last_values[i] = 0;
 		}
