@@ -8,6 +8,7 @@
 #include "tim.h"
 #include "motor_activation.h"
 #include "main.h"
+#include <stdio.h>
 
 #define MOTOR1 CCR1
 #define MOTOR2 CCR2
@@ -23,16 +24,16 @@ GPIO_TypeDef *ports[4] = {RELAY1_GPIO_Port, RELAY2_GPIO_Port, RELAY3_GPIO_Port,
 						  RELAY4_GPIO_Port};
 uint16_t pins[4] = {RELAY1_Pin, RELAY2_Pin, RELAY3_Pin, RELAY4_Pin};
 
-uint8_t last_values[4] = {0, 0, 0, 0};
-uint8_t last_direction[4] = {1, 1, 1, 1};
+float last_values[4] = {0, 0, 0, 0};
+int8_t last_direction[4] = {1, 1, 1, 1};
 
 float map(float in_value)
 {
-	if (in_value == 0)
+	if (in_value <= 0)
 		return 0;
 	else if (in_value > motor_max)
-		return pwm_max;
-	return ((in_value - motor_min) * (pwm_max - pwm_min) / (motor_max - motor_min)) + pwm_min;
+		return motor_max;
+	return (in_value - motor_min) * (pwm_max - pwm_min + 1) / (motor_max - motor_min + 1) + pwm_min;
 }
 
 void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER)
@@ -58,10 +59,10 @@ void motor_init(TIM_HandleTypeDef htim1, TIM_TypeDef *TIMER)
 	TIMER->MOTOR4 = 0;	 // reset to 0, so it can be controlled via ADC
 }
 
-uint8_t is_safe(int8_t current_value, uint8_t current_direction,
+uint8_t is_safe(float current_value, uint8_t current_direction,
 				uint8_t motor_idex)
 {
-	if ((last_values[motor_idex] > 60 && current_value > 60) && (last_direction[0] != current_direction))
+	if ((last_values[motor_idex] > 60.0 && current_value > 60.0) && (last_direction[0] != current_direction))
 	{
 		return 0;
 	}
@@ -101,13 +102,14 @@ void write_speed_to_motors(TIM_TypeDef *TIMER, float *inverse_kinematics)
 		}
 		else
 		{
+			current_orientation = 0;
 			last_values[i] = 0;
 		}
 
-		last_direction[i]=current_orientation;
+		last_direction[i] = current_orientation;
 	}
-	//printf("inverse_kinematics: %f, %f, %f, %f\r\n",inverse_kinematics[0], inverse_kinematics[1], inverse_kinematics[2], inverse_kinematics[3]);
-	//printf("written: %d, %d, %d, %d\r\n",last_values[0], last_values[1], last_values[2], last_values[3]);
+	// printf("inverse_kinematics: %f, %f, %f, %f\r\n",inverse_kinematics[0], inverse_kinematics[1], inverse_kinematics[2], inverse_kinematics[3]);
+	// printf("written: %d, %d, %d, %d\r\n",last_values[0], last_values[1], last_values[2], last_values[3]);
 
 	TIMER->MOTOR1 = last_values[0];
 	TIMER->MOTOR2 = last_values[1];
