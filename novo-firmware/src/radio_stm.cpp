@@ -54,6 +54,7 @@ RadioSTM::RadioSTM(HardwareSerial *s, RF24 *r, BLDCDriver3PWM *d1, uint8_t e1, B
 
 RadioSTM::~RadioSTM()
 {
+    free(result);
 }
 
 void RadioSTM::readRadio()
@@ -94,17 +95,17 @@ void RadioSTM::getWheelSpeeds()
 {
     for (int i = 0; i < 4; i++)
     {
-        result[i] = 0;
+        result[i] = 0.0;
         result[i] = result[i] + jacobian[i][0] * vx;
         result[i] = result[i] + jacobian[i][1] * vy;
         result[i] = result[i] + jacobian[i][2] * vt;
-        result[i] = 1 / WHEEL_RADIUS * result[i];
+        result[i] = (1.0 / WHEEL_RADIUS) * result[i];
     }
 }
 
 void RadioSTM::sendSerialMsg()
 {
-    uint8_t stm[11];
+    uint8_t stm[SIZE_BUFFER_SERIAL];
     stm[0] = '<';
 
     binaryFloat.floatingP = result[2];
@@ -123,17 +124,17 @@ void RadioSTM::sendSerialMsg()
 
     stm[10] = '\0';
 
-    serial->write(stm, 10);
+    serial->write(stm, SIZE_BUFFER_SERIAL);
 }
 
 void RadioSTM::move()
 {
-    motor1->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[0])) / (600 * 0.10472) + 2; // volts
+    motor1->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[0])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor1->loopFOC();
     motor1->move(result[0]);
 
-    motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (600 * 0.10472) + 2; // volts
+    motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
     motor2->move(result[1]);

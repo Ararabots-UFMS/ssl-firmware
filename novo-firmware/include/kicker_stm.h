@@ -3,8 +3,6 @@
 
 #include "base_stm.h"
 
-#define RPM_TO_RADS 0.10472
-
 class KickerSTM : public BaseSTM
 {
 private:

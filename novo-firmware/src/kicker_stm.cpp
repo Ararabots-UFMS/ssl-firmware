@@ -13,7 +13,7 @@ KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriv
 
     result = (float *)malloc(2 * sizeof(float));
 
-    serial->begin(115200);
+    serial->begin(115200, SERIAL_8E2);
 
     driver1->voltage_power_supply = VOLTAGE_POWER_SUPPLY;
     driver1->init();
@@ -49,7 +49,7 @@ KickerSTM::~KickerSTM()
 
 void KickerSTM::readSerialMsg()
 {
-    char buffer[10];
+    char buffer[SIZE_BUFFER_SERIAL];
     while (serial->available()) // Looking for the data.
     {
         serial->readBytesUntil('\0', buffer, sizeof(buffer));
@@ -82,12 +82,12 @@ void KickerSTM::move()
     //     Desired Voltage --------------- Desired Rad/s     //
     //  (((Max Voltage)/2) * |Desired Rad/s|) / (Max Rad/s)  //
     ///////////////////////////////////////////////////////////
-    motor1->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[0])) / (600 * RPM_TO_RADS) + 2; // volts
+    motor1->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[0])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor1->loopFOC();
     motor1->move(result[0]);
 
-    motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (600 * RPM_TO_RADS) + 2; // volts
+    motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
     motor2->move(result[1]);

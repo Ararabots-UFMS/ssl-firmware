@@ -21,5 +21,10 @@
 #define PHASE_RESISTANCE 11
 #define KV_RATING 60
 #define VOLTAGE_POWER_SUPPLY 20
+#define MAX_RPM 600
+
+#define RPM_TO_RADS 0.10472
+
+#define SIZE_BUFFER_SERIAL 11
 
 #endif
