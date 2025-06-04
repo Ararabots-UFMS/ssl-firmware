@@ -8,14 +8,13 @@ class KickerSTM : public BaseSTM
 private:
     uint8_t kik_sig = 0;
 
-    uint8_t kickerPin;
-    uint8_t infraRedPin;
-
     unsigned long last_kick_time = 0;
     uint8_t kicker_activated = 0;
 
+    HardwareSerial *uart;
+
 public:
-    KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2, uint8_t kp, uint8_t irp);
+    KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2);
     ~KickerSTM();
     void readSerialMsg();
     void move();
