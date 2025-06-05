@@ -11,7 +11,9 @@ private:
     unsigned long last_kick_time = 0;
     uint8_t kicker_activated = 0;
 
-    HardwareSerial *uart;
+    // HardwareSerial *uart;
+
+    uint32_t lastTime;
 
 public:
     KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2);

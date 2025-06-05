@@ -4,15 +4,15 @@
 KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2)
 {
     // turn led on
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, HIGH);
-    uart = new HardwareSerial(PA3, PA2); // RX, TX
-    uart->begin(115200);
+    // pinMode(LED_PIN, OUTPUT);
+    // digitalWrite(LED_PIN, HIGH);
+    // uart = new HardwareSerial(PA3, PA2); // RX, TX
+    // uart->begin(115200);
 
     uint8_t rxBuffer[SERIAL_BUFFER_SIZE];
 
     // Initialize UART1 with DMA for RX
-    HAL_UART_Receive_DMA(uart->getHandle(), rxBuffer, SERIAL_BUFFER_SIZE);
+    // HAL_UART_Receive_DMA(uart->getHandle(), rxBuffer, SERIAL_BUFFER_SIZE);
 
     serial = s;
     driver1 = d1;
@@ -52,6 +52,8 @@ KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriv
     HAL_GPIO_WritePin(KICKER__GPIO_PORT, KICKER_GPIO_PIN, GPIO_PIN_RESET);
 
     _delay(1000);
+
+    serial->write("R"); // Send a ready signal to the other STM32
 }
 
 KickerSTM::~KickerSTM()
@@ -60,19 +62,14 @@ KickerSTM::~KickerSTM()
 
 void KickerSTM::readSerialMsg()
 {
-    // Wait until the start byte is found
-    // Don't read it because all of its message might not be available yet.
-    // while (serial->available())
-    // {
-    //     if (serial->peek() == 0xAA)
-    //         break;
-    //     else
-    //         serial->read();
-    // }
 
     // If the message is not complete, return
     if (serial->available() < SERIAL_BUFFER_SIZE)
+    {
+        if (millis() - lastTime > 1000) // If no message is received for more than 1 second
+            serial->write("R");         // Send another ready signal to the other STM32
         return;
+    }
 
     uint8_t buffer[SERIAL_BUFFER_SIZE] = {0}; // Buffer to store the serial data.
     serial->readBytes(buffer, sizeof(buffer));
@@ -83,15 +80,24 @@ void KickerSTM::readSerialMsg()
     binaryFloat.binary[1] = buffer[index++];
     binaryFloat.binary[2] = buffer[index++];
     binaryFloat.binary[3] = buffer[index++];
-    result[0] = binaryFloat.floatingP;
+    float temp = binaryFloat.floatingP;
+
+    if (temp < MAX_RPM && temp > -MAX_RPM)
+        result[0] = temp; // Set the first result if it is within the valid range
 
     binaryFloat.binary[0] = buffer[index++];
     binaryFloat.binary[1] = buffer[index++];
     binaryFloat.binary[2] = buffer[index++];
     binaryFloat.binary[3] = buffer[index++];
-    result[1] = binaryFloat.floatingP;
+    temp = binaryFloat.floatingP;
 
-    kik_sig = buffer[index];
+    if (temp < MAX_RPM && temp > -MAX_RPM)
+        result[1] = temp; // Set the second result if it is within the valid range
+
+    kik_sig = buffer[index] == 1;
+
+    lastTime = millis();
+    serial->write("R");
 }
 
 void KickerSTM::move()
@@ -107,15 +113,15 @@ void KickerSTM::move()
 
     motor1->loopFOC();
     motor1->move(result[0]);
-    uart->println("> Motor 1: " + String(result[0]));
+    // uart->println("> Motor 1: " + String(result[0]));
 
     motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
     motor2->move(result[1]);
-    uart->println("> Motor 2: " + String(result[1]));
+    // uart->println("> Motor 2: " + String(result[1]));
 
-    uart->println("> Kik Sig: " + String(kik_sig));
+    // uart->println("> Kik Sig: " + String(kik_sig));
 }
 
 void KickerSTM::kick()
@@ -149,10 +155,6 @@ void KickerSTM::run()
     kick();
     move();
     deactivateKick();
-
-    result[0] = 0.0f;
-    result[1] = 0.0f;
-    kik_sig = 1;
 
     digitalWrite(LED_PIN, LOW);
 }

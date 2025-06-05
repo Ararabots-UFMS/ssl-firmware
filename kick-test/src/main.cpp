@@ -1,8 +1,5 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
-
 #define INFRARED_PIN PB0
 
 #define KICKER_PIN PB12
@@ -19,7 +16,6 @@ uint32_t last_kick_time = 0;
 
 void setup()
 {
-
   pinMode(KICKER_PIN, OUTPUT_OPEN_DRAIN);
   HAL_GPIO_WritePin(KICKER__GPIO_PORT, KICKER_GPIO_PIN, GPIO_PIN_RESET);
 

@@ -3,11 +3,11 @@
 RadioSTM::RadioSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2)
 {
     // turn led on
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, HIGH);
+    // pinMode(LED_PIN, OUTPUT);
+    // digitalWrite(LED_PIN, HIGH);
 
-    uart = new HardwareSerial(PA3, PA2); // RX, TX
-    uart->begin(115200);
+    // uart = new HardwareSerial(PA3, PA2); // RX, TX
+    // uart->begin(115200);
 
     serial = s;
     driver1 = d1;
@@ -115,12 +115,16 @@ void RadioSTM::getWheelSpeeds()
 
 void RadioSTM::sendSerialMsg()
 {
-    serial->read();
+    if (serial->available() == 0)
+        return;
+
+    Serial.read();
+    while (Serial.available())
+        serial->read();
+
     uint8_t stm[SERIAL_BUFFER_SIZE] = {0}; // Buffer to store the serial data.
 
     uint8_t index = 0;
-
-    // stm[index++] = 0xAA; // The first byte is the robot name.
 
     binaryFloat.floatingP = result[2];
     stm[index++] = binaryFloat.binary[0];
@@ -168,5 +172,5 @@ void RadioSTM::run()
     sendSerialMsg();
     move();
 
-    uart->println("> Serial Data Sent:" + String(result[2]) + ", " + String(result[3]));
+    // uart->println("> Serial Data Sent:" + String(result[2]) + ", " + String(result[3]));
 }

@@ -19,7 +19,7 @@ private:
     float vt = 0.0;
     uint8_t kik_sig = 1;
 
-    HardwareSerial *uart;
+    // HardwareSerial *uart;
 
 public:
     RadioSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t en1, BLDCDriver3PWM *d2, uint8_t en2);

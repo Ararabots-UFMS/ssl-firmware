@@ -44,6 +44,8 @@ inline constexpr float WHEEL_ANGLES[4] = {M_PI * (1.0 / 6.0), M_PI * (5.0 / 6.0)
 #define SERIAL_RX PB11           // Serial RX pin
 #define SERIAL_TX PB10           // Serial TX pin
 
+#define MAX_WHEEL_SPEED 180.0 // Maximum wheel speed in rpm
+
 ////////////////////////////////// Radio STM Variables //////////////////////////////////
 #define ADDRESS 0xFAB10FAB10LL // Address for the radio communication
 
