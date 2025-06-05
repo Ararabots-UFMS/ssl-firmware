@@ -156,5 +156,5 @@ void KickerSTM::run()
     move();
     deactivateKick();
 
-    digitalWrite(LED_PIN, LOW);
+    // digitalWrite(LED_PIN, LOW);
 }
