@@ -19,7 +19,7 @@ inline constexpr const char *ROBOT_NAMES[2] = {"Jare", "Kenzo"};
 // Select the stm you're flashing
 // has_radio = 0 STM with kicker
 // has_radio = 1 STM with radio
-#define HAS_RADIO 0
+#define HAS_RADIO 1
 
 ////////////////////////////////// Base STM Variables //////////////////////////////////
 #define LED_PIN PC13

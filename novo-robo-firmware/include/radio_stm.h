@@ -14,8 +14,8 @@ private:
 
     RF24 *radio;
 
-    float vx = 0.0;
-    float vy = 1.0;
+    float vx = 1.0;
+    float vy = 0.0;
     float vt = 0.0;
     uint8_t kik_sig = 1;
 
