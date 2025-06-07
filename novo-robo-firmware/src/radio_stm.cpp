@@ -1,6 +1,6 @@
-#include "kicker_stm.h"
+#include "radio_stm.h"
 
-KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2, uint8_t kp, uint8_t irp)
+RadioSTM::RadioSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2)
 {
     // turn led on
     pinMode(LED_PIN, OUTPUT);
@@ -26,9 +26,7 @@ KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriv
         jacobian[i][2] = ROBOT_RADIUS;
     }
 
-    result = (float *)malloc(2 * sizeof(float));
-
-    serial->begin(115200, SERIAL_8E2);
+    serial->begin(SERIAL_BAUDRATE, SERIAL_CONFIG);
 
     radio->begin();
     digitalWrite(LED_PIN, LOW);
@@ -62,12 +60,12 @@ KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriv
     delay(1000);
 }
 
-KickerSTM::~KickerSTM()
+RadioSTM::~RadioSTM()
 {
     free(result);
 }
 
-void KickerSTM::getWheelSpeeds()
+void RadioSTM::getWheelSpeeds()
 {
     vx = 1.00;
     vy = 0.00;
@@ -82,7 +80,34 @@ void KickerSTM::getWheelSpeeds()
     }
 }
 
-void KickerSTM::move()
+void RadioSTM::sendSerialMsg()
+{
+    serial->read();
+    uint8_t stm[SERIAL_BUFFER_SIZE] = {0}; // Buffer to store the serial data.
+
+    uint8_t index = 0;
+
+    // stm[index++] = 0xAA; // The first byte is the robot name.
+
+    binaryFloat.floatingP = result[2];
+    stm[index++] = binaryFloat.binary[0];
+    stm[index++] = binaryFloat.binary[1];
+    stm[index++] = binaryFloat.binary[2];
+    stm[index++] = binaryFloat.binary[3];
+
+    binaryFloat.floatingP = result[3];
+    stm[index++] = binaryFloat.binary[0];
+    stm[index++] = binaryFloat.binary[1];
+    stm[index++] = binaryFloat.binary[2];
+    stm[index++] = binaryFloat.binary[3];
+
+    stm[index] = kik_sig;
+
+    serial->write(stm, SERIAL_BUFFER_SIZE); // Sending the data to the serial port.
+    serial->flush();                        // Ensuring that the data is sent immediately.
+}
+
+void RadioSTM::move()
 {
     ///////////////////////////////////////////////////////////
     // Voltage limit is defined by the following calculation //
@@ -93,25 +118,21 @@ void KickerSTM::move()
     motor1->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[0])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor1->loopFOC();
-    motor1->move(result[2]);
+    motor1->move(result[0]);
+    // uart->println("> Motor 1: " + String(result[0]));
 
     motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
-    motor2->move(result[3]);
-
-    uart->println("> Kik Sig: " + String(kik_sig));
+    motor2->move(result[1]);
+    // uart->println("> Motor 2: " + String(result[1]));
 }
 
-
-void KickerSTM::run()
+void RadioSTM::run()
 {
     getWheelSpeeds();
+    sendSerialMsg();
     move();
 
-    // result[0] = 0.0f;
-    // result[1] = 0.0f;
-    // kik_sig = 1;
-
-    digitalWrite(LED_PIN, LOW);
+    uart->println("> Serial Data Sent:" + String(result[2]) + ", " + String(result[3]));
 }

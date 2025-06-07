@@ -2,25 +2,28 @@
 #define __KICKERSTM_H
 
 #include "base_stm.h"
+#include "main.h"
+
+#include <math.h>
+#include <RF24.h>
 
 class KickerSTM : public BaseSTM
 {
 private:
-    uint8_t kik_sig = 0;
+    float jacobian[4][3];
 
-    uint8_t kickerPin;
-    uint8_t infraRedPin;
+    RF24 *radio;
 
-    unsigned long last_kick_time = 0;
-    uint8_t kicker_activated = 0;
+    float vx = 0.0;
+    float vy = 1.0;
+    float vt = 0.0;
+    uint8_t kik_sig = 1;
 
 public:
     KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2, uint8_t kp, uint8_t irp);
     ~KickerSTM();
-    void readSerialMsg();
+    void getWheelSpeeds();
     void move();
-    void kick();
-    void deactivateKick();
     void run();
 };
 
