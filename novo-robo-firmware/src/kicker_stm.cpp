@@ -40,8 +40,18 @@ KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriv
     pinMode(en2, OUTPUT);
     digitalWrite(en2, HIGH);
 
-    pinMode(KICKER_PIN, OUTPUT_OPEN_DRAIN);
+    // Configure PB12 as GPIO Output Push-Pull using HAL directly
+    __HAL_RCC_GPIOB_CLK_ENABLE(); // Enable clock to GPIOB
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = KICKER_GPIO_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP; // Push-pull output
+    GPIO_InitStruct.Pull = GPIO_NOPULL;         // No pull-up/down
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(KICKER__GPIO_PORT, &GPIO_InitStruct);
+
     HAL_GPIO_WritePin(KICKER__GPIO_PORT, KICKER_GPIO_PIN, GPIO_PIN_RESET);
+
+    pinMode(INFRARED_PIN, INPUT_PULLDOWN);
 
     _delay(1000);
 
