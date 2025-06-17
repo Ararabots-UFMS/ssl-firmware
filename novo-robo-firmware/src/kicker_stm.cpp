@@ -3,16 +3,8 @@
 
 KickerSTM::KickerSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2)
 {
-    // turn led on
-    // pinMode(LED_PIN, OUTPUT);
-    // digitalWrite(LED_PIN, HIGH);
-    // uart = new HardwareSerial(PA3, PA2); // RX, TX
-    // uart->begin(115200);
 
     uint8_t rxBuffer[SERIAL_BUFFER_SIZE];
-
-    // Initialize UART1 with DMA for RX
-    // HAL_UART_Receive_DMA(uart->getHandle(), rxBuffer, SERIAL_BUFFER_SIZE);
 
     serial = s;
     driver1 = d1;
@@ -102,7 +94,6 @@ void KickerSTM::readSerialMsg()
 
 void KickerSTM::move()
 {
-    delay(10); // Small delay to ensure the motors are ready
     ///////////////////////////////////////////////////////////
     // Voltage limit is defined by the following calculation //
     //         Max Voltage --------------- Max Rad/s         //
@@ -113,15 +104,11 @@ void KickerSTM::move()
 
     motor1->loopFOC();
     motor1->move(result[0]);
-    // uart->println("> Motor 1: " + String(result[0]));
 
     motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
     motor2->move(result[1]);
-    // uart->println("> Motor 2: " + String(result[1]));
-
-    // uart->println("> Kik Sig: " + String(kik_sig));
 }
 
 void KickerSTM::kick()
@@ -155,6 +142,4 @@ void KickerSTM::run()
     kick();
     move();
     deactivateKick();
-
-    // digitalWrite(LED_PIN, LOW);
 }

@@ -2,12 +2,6 @@
 
 RadioSTM::RadioSTM(HardwareSerial *s, BLDCDriver3PWM *d1, uint8_t e1, BLDCDriver3PWM *d2, uint8_t e2)
 {
-    // turn led on
-    // pinMode(LED_PIN, OUTPUT);
-    // digitalWrite(LED_PIN, HIGH);
-
-    // uart = new HardwareSerial(PA3, PA2); // RX, TX
-    // uart->begin(115200);
 
     serial = s;
     driver1 = d1;
@@ -67,18 +61,14 @@ RadioSTM::~RadioSTM()
 
 void RadioSTM::readRadio()
 {
-    // if (!radio->available()) // Check if there is data available to read
-    //     return;
+    if (!radio->available()) // Check if there is data available to read
+        return;
 
     char buffer[14];
     radio->read(&buffer, sizeof(buffer));
 
     if (buffer[0] != ROBOT_NAME) // Check if the first byte matches the robot name
         return;
-    // for (uint i = 0; i < sizeof(buffer); i++) {
-    //   Serial2.printf("%d, ", buffer[i]);
-    // }
-    // Serial2.printf("\n");
 
     binaryFloat.binary[0] = buffer[1];
     binaryFloat.binary[1] = buffer[2];
@@ -141,7 +131,7 @@ void RadioSTM::sendSerialMsg()
     stm[index] = kik_sig;
 
     serial->write(stm, SERIAL_BUFFER_SIZE); // Sending the data to the serial port.
-    serial->flush();                        // Ensuring that the data is sent immediately.
+    serial->flush();
 }
 
 void RadioSTM::move()
@@ -156,13 +146,11 @@ void RadioSTM::move()
 
     motor1->loopFOC();
     motor1->move(result[0]);
-    // uart->println("> Motor 1: " + String(result[0]));
 
     motor2->voltage_limit = ((VOLTAGE_POWER_SUPPLY / 2) * abs(result[1])) / (MAX_RPM * RPM_TO_RADS) + 2; // volts
 
     motor2->loopFOC();
     motor2->move(result[1]);
-    // uart->println("> Motor 2: " + String(result[1]));
 }
 
 void RadioSTM::run()
@@ -171,6 +159,4 @@ void RadioSTM::run()
     getWheelSpeeds();
     sendSerialMsg();
     move();
-
-    // uart->println("> Serial Data Sent:" + String(result[2]) + ", " + String(result[3]));
 }

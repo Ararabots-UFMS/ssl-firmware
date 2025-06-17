@@ -2,11 +2,11 @@
 #include <RF24.h>
 #include "main.h"
 
-HardwareSerial Serial2(PB11, PB10); // RX, TX pins for Serial communication
-RF24 radio(PB0, PA4);               // CE, CSN pins
+HardwareSerial serial(PB11, PB10); // RX, TX pins for Serial communication
+RF24 radio(PB0, PA4);              // CE, CSN pins
 byte buffer[14] = {0};
 
-const uint32_t timeout = 100; // milliseconds
+const uint32_t timeout = 1000; // milliseconds
 
 void setup()
 {
@@ -14,8 +14,8 @@ void setup()
   digitalWrite(LED_PIN, LOW);
 
   // setbuf(stdout, NULL);              // Disable buffering for stdout
-  Serial2.begin(230400, SERIAL_8E1); // Initialize Serial communication
-  Serial2.setTimeout(1);
+  serial.begin(230400, SERIAL_8E1); // Initialize Serial communication
+  serial.setTimeout(1);
 
   radio.begin();
   radio.openWritingPipe(ADDRESS);
@@ -27,11 +27,11 @@ void setup()
 
 void loop()
 {
-  Serial2.write("R", 1); // Indicate ready
-  Serial2.flush();
+  serial.write("R", 1); // Indicate ready
+  serial.flush();
   uint32_t start_time = millis(); // Initialize start_time
 
-  while (Serial2.available() < 14) // Wait until at least 14 bytes are available
+  while (serial.available() < 14) // Wait until at least 14 bytes are available
   {
     // If too much time has passed, exit the loop (timeout)
     if (millis() - start_time > timeout)
@@ -41,10 +41,6 @@ void loop()
   // Clear the buffer before reading
   memset(buffer, 0, sizeof(buffer)); // Clear the buffer to avoid garbage data
 
-  Serial2.readBytes(buffer, sizeof(buffer));
+  serial.readBytes(buffer, sizeof(buffer));
   radio.write(buffer, sizeof(buffer), true); // Send the data over RF24
-
-  // Serial2.println(lido);
-  // Serial2.write(buffer, 14); // Echo the data back to Serial
-  // Serial2.flush();           // Ensure all data is sent
 }

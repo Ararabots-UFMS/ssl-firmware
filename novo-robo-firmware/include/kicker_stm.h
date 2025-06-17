@@ -11,8 +11,6 @@ private:
     unsigned long last_kick_time = 0;
     uint8_t kicker_activated = 0;
 
-    // HardwareSerial *uart;
-
     uint32_t lastTime;
 
 public:
