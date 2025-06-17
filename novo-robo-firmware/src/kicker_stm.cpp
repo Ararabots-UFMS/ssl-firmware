@@ -66,7 +66,7 @@ void KickerSTM::readSerialMsg()
     uint8_t buffer[SERIAL_BUFFER_SIZE] = {0}; // Buffer to store the serial data.
     serial->readBytes(buffer, sizeof(buffer));
 
-    uint8_t index = 0; // Discard the first byte (0xAA)
+    uint8_t index = 0;
 
     binaryFloat.binary[0] = buffer[index++];
     binaryFloat.binary[1] = buffer[index++];
