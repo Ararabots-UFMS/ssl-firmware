@@ -4,6 +4,5 @@
 Debug/
 Release/
 Backup/
-.pio
-.vscode
+.*
 __pycache__/
